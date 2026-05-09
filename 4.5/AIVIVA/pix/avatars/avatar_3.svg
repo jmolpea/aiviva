@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Male academic avatar">
+  <!-- Avatar 3: Male appearance, tie, academic expert look -->
+  <defs>
+    <clipPath id="circle-clip-3">
+      <circle cx="100" cy="100" r="98"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="100" cy="100" r="98" fill="#2c1a4a" class="avatar-glow"/>
+
+  <!-- Body / dark suit jacket -->
+  <ellipse cx="100" cy="178" rx="70" ry="50" fill="#1c1c3a" clip-path="url(#circle-clip-3)"/>
+  <!-- Shirt & tie -->
+  <polygon points="92,130 108,130 112,168 88,168" fill="#f0ede8"/>
+  <!-- Tie -->
+  <polygon points="97,130 103,130 101,162 99,162" fill="#8b0000"/>
+  <polygon points="99,162 101,162 100,168" fill="#8b0000"/>
+  <!-- Jacket lapels -->
+  <path d="M92,130 L74,148 L88,168" fill="#1c1c3a"/>
+  <path d="M108,130 L126,148 L112,168" fill="#1c1c3a"/>
+
+  <!-- Neck -->
+  <rect x="88" y="116" width="24" height="18" rx="7" fill="#b8864a"/>
+
+  <!-- Head -->
+  <ellipse cx="100" cy="93" rx="37" ry="42" fill="#b8864a"/>
+
+  <!-- Hair — short, salt-and-pepper, receding slightly -->
+  <path d="M63 80 Q65 50 100 48 Q135 50 137 80 Q120 62 100 63 Q80 62 63 80" fill="#4a4a5a"/>
+  <!-- Small beard / scruff -->
+  <path d="M80 122 Q100 132 120 122 Q118 130 100 134 Q82 130 80 122" fill="#4a4a5a" opacity="0.7"/>
+
+  <!-- Eyes -->
+  <ellipse cx="85" cy="91" rx="6" ry="7" fill="#fff"/>
+  <ellipse cx="115" cy="91" rx="6" ry="7" fill="#fff"/>
+  <circle cx="86" cy="92" r="4.5" fill="#2c1a08"/>
+  <circle cx="116" cy="92" r="4.5" fill="#2c1a08"/>
+  <circle cx="88" cy="90" r="1.5" fill="#fff"/>
+  <circle cx="118" cy="90" r="1.5" fill="#fff"/>
+
+  <!-- Eyebrows — strong, slightly furrowed -->
+  <path d="M78 82 Q86 78 93 82" stroke="#3a2a18" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M107 82 Q114 78 122 82" stroke="#3a2a18" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose — more prominent -->
+  <path d="M96 100 Q100 109 104 100" stroke="#9a6a38" stroke-width="2" fill="none"/>
+  <ellipse cx="97" cy="108" rx="3" ry="2" fill="#a07048" opacity="0.4"/>
+  <ellipse cx="103" cy="108" rx="3" ry="2" fill="#a07048" opacity="0.4"/>
+
+  <!-- Mouth — serious but approachable -->
+  <ellipse id="mouth_open_3" cx="100" cy="121" rx="12" ry="0" fill="#1a0500"/>
+  <path class="mouth" d="M87 118 Q100 124 113 118" stroke="#7a4a28" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Glasses — rectangular academic style -->
+  <rect x="77" y="85" width="20" height="13" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
+  <rect x="103" y="85" width="20" height="13" rx="3" fill="none" stroke="#333" stroke-width="2.5"/>
+  <line x1="97" y1="91" x2="103" y2="91" stroke="#333" stroke-width="1.8"/>
+  <!-- Temple arms -->
+  <line x1="77" y1="91" x2="66" y2="94" stroke="#333" stroke-width="1.8"/>
+  <line x1="123" y1="91" x2="134" y2="94" stroke="#333" stroke-width="1.8"/>
+
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="97" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+</svg>

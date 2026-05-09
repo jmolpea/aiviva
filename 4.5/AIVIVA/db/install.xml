@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/aiviva/db" VERSION="20240322" COMMENT="XMLDB file for mod_aiviva"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="aiviva" COMMENT="Main table for aiviva activity instances">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Course aiviva activity belongs to"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="openai_apikey" TYPE="text" NOTNULL="false" COMMENT="Encrypted OpenAI API key (overrides global)"/>
+        <FIELD NAME="openai_model_pdf" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="gpt-4o"/>
+        <FIELD NAME="openai_model_tribunal" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="gpt-4o"/>
+        <FIELD NAME="openai_model_eval" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="gpt-4o"/>
+        <FIELD NAME="max_attempts" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2" COMMENT="0 = unlimited"/>
+        <FIELD NAME="step1_description" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="step1_descriptionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="step1_prompt" TYPE="text" NOTNULL="false" COMMENT="Prompt for PDF analysis"/>
+        <FIELD NAME="step2_description" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="step2_descriptionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="step2_prompt" TYPE="text" NOTNULL="false" COMMENT="Prompt for video analysis"/>
+        <FIELD NAME="step2_duration" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="10" COMMENT="Minutes: 5, 10, 15 or 30"/>
+        <FIELD NAME="step2_maxfilesize" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="500" COMMENT="Max video size in MB"/>
+        <FIELD NAME="step3_duration" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="10" COMMENT="Tribunal session duration in minutes"/>
+        <FIELD NAME="step3_prompt_eval" TYPE="text" NOTNULL="false" COMMENT="Final evaluation prompt"/>
+        <FIELD NAME="tribunal_member_1_name" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Dr. Smith"/>
+        <FIELD NAME="tribunal_member_1_role" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Examiner"/>
+        <FIELD NAME="tribunal_member_1_prompt" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="tribunal_member_1_voice" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="onyx"/>
+        <FIELD NAME="tribunal_member_1_avatar" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="3"/>
+        <FIELD NAME="tribunal_member_1_avatar_custom" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="tribunal_member_2_name" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Prof. Johnson"/>
+        <FIELD NAME="tribunal_member_2_role" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Reviewer"/>
+        <FIELD NAME="tribunal_member_2_prompt" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="tribunal_member_2_voice" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="nova"/>
+        <FIELD NAME="tribunal_member_2_avatar" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2"/>
+        <FIELD NAME="tribunal_member_2_avatar_custom" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="tribunal_member_3_name" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Dr. Williams"/>
+        <FIELD NAME="tribunal_member_3_role" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="Subject Expert"/>
+        <FIELD NAME="tribunal_member_3_prompt" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="tribunal_member_3_voice" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="echo"/>
+        <FIELD NAME="tribunal_member_3_avatar" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="tribunal_member_3_avatar_custom" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="grading_workflow" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="group_submission" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="groupingid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="notify_student" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="video_purge_days" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="15"/>
+        <FIELD NAME="safety_max_tokens" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="4096"/>
+        <FIELD NAME="safety_content_filter" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="safety_extra_prompt" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100"/>
+        <FIELD NAME="completionsubmit" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="completiongrade" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="completionmingradeval" TYPE="number" LENGTH="10" NOTNULL="false" DECIMALS="5" DEFAULT="0.00000"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aiviva_submissions" COMMENT="Student submissions for aiviva activities">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aiviva" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to aiviva table"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="draft" COMMENT="draft|step1|step2|step3|submitted|grading|graded"/>
+        <FIELD NAME="attempt" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="gdpr_consent" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="gdpr_consent_time" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="pdf_fileid" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="pdf_analysis" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="video_fileid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="-1 means purged"/>
+        <FIELD NAME="video_transcript" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="video_analysis" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="tribunal_transcript" TYPE="text" NOTNULL="false" COMMENT="JSON with full conversation history"/>
+        <FIELD NAME="tribunal_analysis" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="tribunal_briefing" TYPE="text" NOTNULL="false" COMMENT="AI-generated examiner briefing synthesised from PDF and video at tribunal start"/>
+        <FIELD NAME="final_grade" TYPE="number" LENGTH="10" NOTNULL="false" DECIMALS="5"/>
+        <FIELD NAME="final_feedback" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="grade_breakdown" TYPE="text" NOTNULL="false" COMMENT="JSON with per-step breakdown"/>
+        <FIELD NAME="grader_userid" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="workflow_state" TYPE="char" LENGTH="50" NOTNULL="false" COMMENT="inreview|readyforrelease|released"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timesubmitted" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="timegraded" TYPE="int" LENGTH="10" NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aiviva" TYPE="foreign" FIELDS="aiviva" REFTABLE="aiviva" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="aiviva_userid" UNIQUE="false" FIELDS="aiviva, userid"/>
+        <INDEX NAME="aiviva_status" UNIQUE="false" FIELDS="aiviva, status"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aiviva_tribunal_messages" COMMENT="Detailed log of each tribunal turn">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="submission_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to aiviva_submissions"/>
+        <FIELD NAME="turn_number" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="speaker" TYPE="char" LENGTH="50" NOTNULL="true" COMMENT="tribunal_1|tribunal_2|tribunal_3|participant"/>
+        <FIELD NAME="message_text" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="audio_fileid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="File id for participant audio response"/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="submission_id" TYPE="foreign" FIELDS="submission_id" REFTABLE="aiviva_submissions" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="submission_turn" UNIQUE="false" FIELDS="submission_id, turn_number"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aiviva_overrides" COMMENT="Per-user or per-group overrides for aiviva activities">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aiviva" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to aiviva table"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="FK to user table (null for group overrides)"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="FK to groups table (null for user overrides)"/>
+        <FIELD NAME="max_attempts" TYPE="int" LENGTH="4" NOTNULL="false" COMMENT="Override max attempts (null = use activity default)"/>
+        <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="Override open timestamp (null = use activity default)"/>
+        <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="Override close timestamp (null = use activity default)"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aiviva" TYPE="foreign" FIELDS="aiviva" REFTABLE="aiviva" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="aiviva_userid" UNIQUE="false" FIELDS="aiviva, userid"/>
+        <INDEX NAME="aiviva_groupid" UNIQUE="false" FIELDS="aiviva, groupid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

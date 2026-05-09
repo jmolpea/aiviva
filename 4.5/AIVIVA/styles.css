@@ -1,0 +1,589 @@
+/**
+ * Styles for mod_aiviva — AI Viva activity plugin.
+ *
+ * @package    mod_aiviva
+ * @copyright  2024 AI Viva Project
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/* =========================================================================
+   CSS Custom Properties
+   ========================================================================= */
+:root {
+    --aiviva-primary:       #0082CA;
+    --aiviva-success:       #28a745;
+    --aiviva-danger:        #dc3545;
+    --aiviva-warning:       #ffc107;
+    --aiviva-dark:          #1a1a2e;
+    --aiviva-dark-card:     #16213e;
+    --aiviva-dark-surface:  #0f3460;
+    --aiviva-text-light:    #e0e0e0;
+    --aiviva-glow:          rgba(0, 130, 202, 0.6);
+    --aiviva-active-glow:   rgba(66, 133, 244, 0.6);
+    --aiviva-radius:        12px;
+    --aiviva-transition:    0.3s ease;
+}
+
+/* =========================================================================
+   Container
+   ========================================================================= */
+.aiviva-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.aiviva-title {
+    color: var(--aiviva-primary);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+/* =========================================================================
+   Stepper
+   ========================================================================= */
+.aiviva-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--aiviva-radius);
+}
+
+.aiviva-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: default;
+    transition: var(--aiviva-transition);
+}
+
+.step-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: #dee2e6;
+    color: #6c757d;
+    border: 3px solid #dee2e6;
+    transition: var(--aiviva-transition);
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+    max-width: 100px;
+    transition: var(--aiviva-transition);
+}
+
+.aiviva-step.completed .step-number {
+    background: var(--aiviva-success);
+    border-color: var(--aiviva-success);
+    color: #fff;
+}
+
+.aiviva-step.active .step-number {
+    background: var(--aiviva-primary);
+    border-color: var(--aiviva-primary);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(0, 130, 202, 0.25);
+    transform: scale(1.1);
+}
+
+.aiviva-step.active .step-label {
+    color: var(--aiviva-primary);
+    font-weight: 600;
+}
+
+.step-connector {
+    flex: 1;
+    height: 3px;
+    background: #dee2e6;
+    margin: 0 0.5rem;
+    margin-bottom: 1.5rem;
+    max-width: 100px;
+    transition: var(--aiviva-transition);
+}
+
+/* =========================================================================
+   Attempts info
+   ========================================================================= */
+.aiviva-attempts-info {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* =========================================================================
+   GDPR Notice
+   ========================================================================= */
+.aiviva-gdpr-notice {
+    border-left: 4px solid var(--aiviva-warning);
+    margin-bottom: 2rem;
+}
+
+.aiviva-gdpr-notice h4 {
+    color: #856404;
+}
+
+/* =========================================================================
+   Upload Zone (Step 1)
+   ========================================================================= */
+.aiviva-upload-zone {
+    border: 3px dashed #dee2e6;
+    border-radius: var(--aiviva-radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--aiviva-transition);
+    margin-bottom: 1rem;
+    background: #fafafa;
+}
+
+.aiviva-upload-zone:hover,
+.aiviva-upload-zone.drag-over {
+    border-color: var(--aiviva-primary);
+    background: rgba(0, 130, 202, 0.05);
+}
+
+.aiviva-upload-zone .dropzone-label {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.aiviva-file-input {
+    display: none;
+}
+
+/* =========================================================================
+   Progress Bar
+   ========================================================================= */
+.aiviva-progress-bar {
+    margin: 1rem 0;
+}
+
+/* =========================================================================
+   Status Message
+   ========================================================================= */
+.aiviva-status-message {
+    margin-top: 1rem;
+    display: none;
+    border-radius: var(--aiviva-radius);
+}
+
+/* =========================================================================
+   Countdown (Step 2)
+   ========================================================================= */
+.aiviva-countdown {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    font-size: 15rem;
+    font-weight: 900;
+    color: #fff;
+    animation: countdownPulse 0.9s ease-in-out infinite;
+    transition: color 0.5s;
+}
+
+.aiviva-countdown.urgent {
+    color: var(--aiviva-danger);
+    animation: countdownPulse 0.3s ease-in-out infinite;
+}
+
+@keyframes countdownPulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.1); }
+}
+
+/* =========================================================================
+   REC indicator
+   ========================================================================= */
+.aiviva-rec-indicator {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    z-index: 1000;
+    font-weight: 700;
+}
+
+.aiviva-rec-indicator::before {
+    content: '●';
+    color: var(--aiviva-danger);
+    animation: recBlink 1s ease-in-out infinite;
+}
+
+@keyframes recBlink {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.2; }
+}
+
+/* =========================================================================
+   Recording timer
+   ========================================================================= */
+.aiviva-timer {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--aiviva-primary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+}
+
+/* =========================================================================
+   Video preview
+   ========================================================================= */
+.aiviva-video-preview {
+    margin-top: 1.5rem;
+}
+
+.aiviva-video-preview video {
+    border-radius: var(--aiviva-radius);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* =========================================================================
+   Tribunal Room (Step 3)
+   ========================================================================= */
+.aiviva-tribunal-room {
+    background: linear-gradient(160deg, var(--aiviva-dark) 0%, var(--aiviva-dark-card) 60%, var(--aiviva-dark-surface) 100%);
+    border-radius: var(--aiviva-radius);
+    padding: 1.5rem;
+    color: var(--aiviva-text-light);
+    position: relative;
+    min-height: 600px;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-columns: 1fr 280px;
+    gap: 1rem;
+}
+
+/* Header */
+.tribunal-header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
+}
+
+.tribunal-title {
+    color: #fff;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.tribunal-timer {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    background: rgba(255,255,255,0.1);
+    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+}
+
+.tribunal-timer.urgent {
+    color: var(--aiviva-danger);
+    animation: urgentPulse 1s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+    0%,100% { background: rgba(220,53,69,0.2); }
+    50%     { background: rgba(220,53,69,0.5); }
+}
+
+/* Avatars */
+.tribunal-avatars {
+    grid-column: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 1rem 0;
+}
+
+.tribunal-member {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    transition: var(--aiviva-transition);
+    cursor: default;
+}
+
+.avatar-glow {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.2);
+    transition: box-shadow 0.3s, border-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+}
+
+.tribunal-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-glow svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+video.avatar-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+}
+
+.member-info {
+    text-align: center;
+}
+
+.member-info strong {
+    display: block;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.member-info .member-role {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.6);
+}
+
+/* Active speaker */
+.tribunal-member.active-speaker .avatar-glow {
+    border-color: var(--aiviva-primary);
+    box-shadow: 0 0 0 4px var(--aiviva-glow), 0 0 40px 10px rgba(0, 130, 202, 0.4);
+}
+
+.tribunal-member.inactive-speaker {
+    opacity: 0.5;
+    filter: grayscale(40%);
+}
+
+/* Lip sync */
+@keyframes lipSync {
+    0%,100% { transform: scaleY(1); }
+    50%     { transform: scaleY(1.4); }
+}
+
+.speaking .mouth {
+    animation: lipSync 0.15s ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* Transcript */
+.tribunal-transcript {
+    grid-column: 1;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+}
+
+.tribunal-transcript .transcript-item {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+}
+
+.transcript-item.participant-turn {
+    background: rgba(0, 130, 202, 0.2);
+    border-left: 3px solid var(--aiviva-primary);
+}
+
+.transcript-item.tribunal-turn {
+    background: rgba(255,255,255,0.07);
+    border-left: 3px solid rgba(255,255,255,0.3);
+}
+
+.transcript-item.member-1 { border-left-color: #e74c3c; }
+.transcript-item.member-2 { border-left-color: #2ecc71; }
+.transcript-item.member-3 { border-left-color: #f39c12; }
+
+.speaker-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.25rem;
+}
+
+.message-text {
+    color: var(--aiviva-text-light);
+}
+
+/* Participant controls */
+.tribunal-participant-controls {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+}
+
+.push-to-talk {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    user-select: none;
+}
+
+.push-to-talk.active {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 6px rgba(0, 130, 202, 0.4);
+}
+
+/* Waveform visualiser */
+.participant-waveform {
+    width: 100%;
+    height: 40px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    display: none;
+}
+
+/* Sidebar */
+.tribunal-sidebar {
+    grid-column: 2;
+    grid-row: 2 / -1;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+    font-size: 0.85rem;
+}
+
+.tribunal-sidebar h4 {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.75rem;
+}
+
+.conversation-log .transcript-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* =========================================================================
+   Results card
+   ========================================================================= */
+.aiviva-results {
+    border-radius: var(--aiviva-radius);
+}
+
+.aiviva-final-grade {
+    font-size: 1.4rem;
+    font-weight: 700;
+    border-radius: var(--aiviva-radius);
+}
+
+/* =========================================================================
+   Submissions table (teacher view)
+   ========================================================================= */
+.aiviva-submissions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.aiviva-submissions-table th {
+    background: var(--aiviva-primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+.aiviva-submissions-table td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.aiviva-submissions-table tr:hover td {
+    background: rgba(0, 130, 202, 0.05);
+}
+
+/* Workflow badges */
+.badge-inreview      { background: #6c757d; color: #fff; }
+.badge-readyforrelease { background: var(--aiviva-warning); color: #000; }
+.badge-released      { background: var(--aiviva-success); color: #fff; }
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+@media (max-width: 768px) {
+    .aiviva-tribunal-room {
+        grid-template-columns: 1fr;
+    }
+    .tribunal-sidebar {
+        grid-column: 1;
+        grid-row: auto;
+        max-height: 200px;
+    }
+    .tribunal-avatars {
+        gap: 0.5rem;
+    }
+    .avatar-glow {
+        width: 90px;
+        height: 90px;
+    }
+    .aiviva-countdown {
+        font-size: 8rem;
+    }
+    .aiviva-stepper {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .step-connector {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    .aiviva-container {
+        max-width: 1140px;
+    }
+    .avatar-glow {
+        width: 160px;
+        height: 160px;
+    }
+}

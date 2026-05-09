@@ -1,0 +1,58 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Event fired when a user views the aiviva activity.
+ *
+ * @package    mod_aiviva
+ * @copyright  2024 AI Viva Project
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace mod_aiviva\event;
+
+/**
+ * Event: course module viewed.
+ */
+class course_module_viewed extends \core\event\course_module_viewed {
+    /**
+     * Initialises event data.
+     */
+    protected function init(): void {
+        $this->data['crud']        = 'r';
+        $this->data['edulevel']    = self::LEVEL_PARTICIPATING;
+        $this->data['objecttable'] = 'aiviva';
+    }
+
+    /**
+     * Factory: create from course module, course and aiviva objects.
+     *
+     * @param \stdClass $cm     Course module record.
+     * @param \stdClass $course Course record.
+     * @param \stdClass $aiviva Aiviva instance record.
+     * @return self
+     */
+    public static function create_from_cm(\stdClass $cm, \stdClass $course, \stdClass $aiviva): self {
+        $event = self::create([
+            'objectid' => $aiviva->id,
+            'context'  => \context_module::instance($cm->id),
+        ]);
+        $event->add_record_snapshot('course', $course);
+        $event->add_record_snapshot('aiviva', $aiviva);
+        $event->add_record_snapshot('course_modules', $cm);
+        return $event;
+    }
+}

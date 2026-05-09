@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Female academic avatar">
+  <!-- Avatar 2: Female appearance, academic professional, hair up -->
+  <defs>
+    <clipPath id="circle-clip-2">
+      <circle cx="100" cy="100" r="98"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="100" cy="100" r="98" fill="#1a4a3c" class="avatar-glow"/>
+
+  <!-- Body / academic blazer -->
+  <ellipse cx="100" cy="178" rx="68" ry="48" fill="#1a4a3c" clip-path="url(#circle-clip-2)"/>
+  <!-- Blouse / collar detail -->
+  <polygon points="90,132 110,132 114,168 86,168" fill="#f5f5f0"/>
+  <path d="M96,132 Q100,140 104,132" fill="none" stroke="#d4a0a0" stroke-width="2"/>
+
+  <!-- Neck -->
+  <rect x="89" y="119" width="22" height="17" rx="8" fill="#e8b99a"/>
+
+  <!-- Head -->
+  <ellipse cx="100" cy="94" rx="36" ry="43" fill="#e8b99a"/>
+
+  <!-- Hair — brown, up-do bun -->
+  <!-- Back hair -->
+  <ellipse cx="100" cy="54" rx="37" ry="22" fill="#6b3f1e"/>
+  <!-- Bun -->
+  <ellipse cx="100" cy="50" rx="18" ry="14" fill="#6b3f1e"/>
+  <ellipse cx="100" cy="48" rx="14" ry="10" fill="#7d4f2a"/>
+  <!-- Side strands -->
+  <path d="M64 80 Q58 100 62 120" stroke="#6b3f1e" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M136 80 Q142 100 138 120" stroke="#6b3f1e" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Hair band -->
+  <ellipse cx="100" cy="60" rx="17" ry="4" fill="#c0392b" opacity="0.8"/>
+
+  <!-- Earrings -->
+  <circle cx="65" cy="98" r="3" fill="#f1c40f"/>
+  <circle cx="135" cy="98" r="3" fill="#f1c40f"/>
+
+  <!-- Eyes -->
+  <ellipse cx="85" cy="92" rx="6" ry="7" fill="#fff"/>
+  <ellipse cx="115" cy="92" rx="6" ry="7" fill="#fff"/>
+  <circle cx="86" cy="93" r="4" fill="#4a2c0a"/>
+  <circle cx="116" cy="93" r="4" fill="#4a2c0a"/>
+  <circle cx="88" cy="91" r="1.5" fill="#fff"/>
+  <circle cx="118" cy="91" r="1.5" fill="#fff"/>
+
+  <!-- Eyelashes (upper) -->
+  <path d="M79 87 Q85 82 91 86" stroke="#2c1a08" stroke-width="2" fill="none"/>
+  <path d="M109 87 Q115 82 121 86" stroke="#2c1a08" stroke-width="2" fill="none"/>
+
+  <!-- Eyebrows — arched -->
+  <path d="M78 82 Q86 77 93 83" stroke="#6b3f1e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M107 83 Q114 77 122 82" stroke="#6b3f1e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose -->
+  <path d="M98 100 Q100 107 102 100" stroke="#c0936e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Mouth — warm smile -->
+  <ellipse id="mouth_open_2" cx="100" cy="120" rx="12" ry="0" fill="#2a0800"/>
+  <path class="mouth" d="M87 116 Q100 124 113 116" stroke="#a0523a" stroke-width="2.5" fill="#f08080" opacity="0.6"/>
+  <path d="M87 116 Q100 124 113 116" stroke="#a0523a" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="97" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+</svg>
