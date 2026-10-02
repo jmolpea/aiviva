@@ -18,530 +18,372 @@
  * English language strings for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['activityname']       = 'Activity name';
-
-$string['aiviva:addinstance']         = 'Add an AI Viva activity';
-
-$string['aiviva:grade']               = 'Grade submissions';
-
-$string['aiviva:manageoverrides']     = 'Manage user and group overrides';
-
-$string['aiviva:manageplugin']        = 'Manage plugin settings';
-
-$string['aiviva:submit']              = 'Submit a presentation';
-
-$string['aiviva:view']                = 'View AI Viva activity';
-
-$string['aiviva:viewallsubmissions']  = 'View all submissions';
-
-$string['attemptsinfo']       = 'Attempts used: {$a->used} / {$a->max} ({$a->remaining} remaining)';
-
-$string['avatar_1']      = 'Avatar 1 (neutral)';
-
-$string['avatar_2']      = 'Avatar 2 (feminine)';
-
-$string['avatar_3']      = 'Avatar 3 (masculine)';
-
+$string['activityname'] = 'Activity name';
+$string['ai_analysis'] = 'AI analysis';
+$string['ai_evaluation'] = 'AI evaluation';
+$string['aiviva:addinstance'] = 'Add an AI Viva activity';
+$string['aiviva:grade'] = 'Grade submissions';
+$string['aiviva:manageoverrides'] = 'Manage user and group overrides';
+$string['aiviva:manageplugin'] = 'Manage plugin settings';
+$string['aiviva:submit'] = 'Submit a presentation';
+$string['aiviva:view'] = 'View AI Viva activity';
+$string['aiviva:viewallsubmissions'] = 'View all submissions';
+$string['answer_start'] = 'Start answering';
+$string['answer_stop'] = 'Finish and send answer';
+$string['answer_too_short'] = 'That was too short to be an answer. Press the button, speak, then press it again to send.';
+$string['answer_transcribing'] = 'Listening to your answer…';
+$string['attempt_in_progress'] = 'This attempt is still in progress. Grading and regeneration become available once the student has finished the tribunal.';
+$string['attempt_number'] = 'Attempt {$a}';
+$string['attemptsinfo'] = 'Attempt {$a->used} of {$a->max}';
+$string['availability_closes'] = 'Closes: {$a}';
+$string['availability_opens'] = 'Opens: {$a}';
+$string['avatar_1'] = 'Avatar 1 (neutral)';
+$string['avatar_2'] = 'Avatar 2 (feminine)';
+$string['avatar_3'] = 'Avatar 3 (masculine)';
 $string['avatar_custom'] = 'Custom image';
-
-$string['backup_files']          = 'Include video/audio files (may be large)';
-
-$string['backup_settings']       = 'Include AI Viva activity settings';
-
-$string['backup_submissions']    = 'Include student submissions';
-
-$string['col_actions']           = 'Actions';
-
-$string['col_grade']             = 'Grade';
-
-$string['col_status']            = 'Status';
-
-$string['col_student']           = 'Student';
-
-$string['col_submitted']         = 'Submitted';
-
-$string['col_workflow']          = 'Workflow';
-
-$string['completiongrade']            = 'Student must receive a grade';
-
-$string['completionsubmit']           = 'Student must submit the activity';
-
+$string['back_to_submissions'] = 'Back to all submissions';
+$string['breakdown_score'] = 'Score';
+$string['breakdown_step'] = 'Step';
+$string['breakdown_weight'] = 'Weight';
+$string['cachedef_ratelimit'] = 'Rate limiting of AI calls and regenerations';
+$string['cachedef_tribunal'] = 'Prepared tribunal openings';
+$string['col_actions'] = 'Actions';
+$string['col_aigrade'] = 'AI grade';
+$string['col_attempt'] = 'Attempt';
+$string['col_grade'] = 'Grade';
+$string['col_status'] = 'Status';
+$string['col_student'] = 'Student';
+$string['col_submitted'] = 'Submitted';
+$string['col_workflow'] = 'Workflow';
+$string['completiondetail:submit'] = 'Complete all three steps';
+$string['completionsubmit'] = 'Student must complete all three steps (document, presentation and tribunal)';
 $string['confirm_delete_submission'] = 'Are you sure you want to delete this submission? This cannot be undone.';
-
-$string['confirm_pdf_upload']    = 'Are you sure your document is ready? Once submitted, it cannot be changed for this attempt.';
-
-$string['confirm_video_submit']  = 'Submit your recording? This attempt will be final.';
-
-$string['content_flagged']           = 'Content was flagged by the AI safety filter. Please review your submission.';
-
-$string['continue_to_step2']    = 'Continue to Step 2 →';
-
-$string['continue_to_step3']    = 'Continue to Step 3 →';
-
-$string['conversation_log']      = 'Session Log';
-
-$string['delete_submission']         = 'Delete submission';
-
-$string['error_analysis_timeout']    = 'Analysis is taking longer than expected. Please refresh the page to check progress.';
-
-$string['error_duration_invalid']    = 'Duration must be at least 1 minute.';
-
-$string['error_file_too_large']      = 'File exceeds the maximum allowed size of {$a} MB.';
-
+$string['confirm_pdf_upload'] = 'Are you sure your document is ready? Once submitted, it cannot be changed for this attempt.';
+$string['confirm_video_submit'] = 'Submit this recording? It cannot be changed afterwards for this attempt.';
+$string['content_flagged'] = 'Content was flagged by the AI safety filter. Please review your submission.';
+$string['error_answer_empty'] = 'No speech could be heard in your answer. Check your microphone and answer again.';
+$string['error_browser_unsupported'] = 'Your browser cannot record audio or share the screen. Please use a current version of Chrome, Edge, Firefox or Safari.';
+$string['error_closebeforeopen'] = 'The closing date must be after the opening date.';
+$string['error_closed'] = 'This activity is closed and no longer accepts submissions.';
+$string['error_duration_invalid'] = 'Duration must be at least 1 minute.';
+$string['error_file_too_large'] = 'File exceeds the maximum allowed size of {$a} MB.';
+$string['error_grade_invalid'] = 'The maximum grade must be at least 1.';
+$string['error_grade_range'] = 'The grade must be a number between 0 and {$a}.';
+$string['error_invalid_filetype'] = 'This type of file is not accepted.';
 $string['error_maxfilesize_exceeds_global'] = 'Cannot exceed the global maximum of {$a} MB set by your site administrator.';
-
 $string['error_maxfilesize_toosmall'] = 'Maximum file size must be at least 1 MB.';
-
-$string['error_not_pdf']             = 'Only PDF files are accepted.';
-
-$string['error_screen_permission']   = 'Screen recording permission was denied. Please allow screen capture and try again.';
-
-$string['error_video_too_large']     = 'Video exceeds the maximum allowed size of {$a} MB.';
-
-$string['evaluation_complete']   = '✅ Evaluation complete. Redirecting…';
-
-$string['evaluation_pending']    = 'The AI panel is evaluating your performance. This may take a moment…';
-
+$string['error_mic_permission'] = 'Microphone access was denied or no microphone was found. Allow microphone access in your browser and try again.';
+$string['error_no_pdf'] = 'No PDF is stored for this attempt.';
+$string['error_no_recording'] = 'No recording is stored for this attempt (it may have been purged).';
+$string['error_nolicense'] = 'AI Viva has no valid license for this site, so the activity is disabled. Please contact your administrator.';
+$string['error_not_pdf'] = 'Only PDF files are accepted.';
+$string['error_notopen'] = 'This activity is not open yet.';
+$string['error_purge_days'] = 'Enter 0 to keep recordings, or a positive number of days.';
+$string['error_regen_not_finished'] = 'This is only possible once the student has finished the tribunal.';
+$string['error_screen_permission'] = 'Screen recording permission was denied. Please allow screen capture and try again.';
+$string['error_tribunal_not_finished'] = 'The tribunal session has not finished yet.';
+$string['error_upload_failed'] = 'The file could not be uploaded. Please try again.';
+$string['error_video_too_large'] = 'Video exceeds the maximum allowed size of {$a} MB.';
+$string['error_weights'] = 'The three weights must be whole numbers from 0 to 100 that add up to 100.';
+$string['evaluation_pending'] = 'The AI panel is evaluating your performance. This may take a moment…';
 $string['evaluator_invalid_response'] = 'The AI evaluator returned an invalid response. Please contact your instructor.';
-
-$string['event_assessment_completed']  = 'AI assessment completed';
-
-$string['event_grade_issued']          = 'Grade issued';
-
-$string['event_submission_created']    = 'Submission created';
-
-$string['feedback']              = 'Feedback';
-
-$string['gdpr_consent_label']    = 'I understand and agree that my PDF, video, and audio will be processed by OpenAI\'s API.';
-
-$string['gdpr_consent_required']      = 'You must provide GDPR consent on the activity page before uploading files.';
-
-$string['gdpr_default_notice']   = '<p>To complete this activity, your submitted PDF document, screen recording, and spoken responses will be sent to <strong>OpenAI\'s API</strong> for analysis and evaluation.</p><p>Your personal name will be replaced with an anonymous identifier before any data is sent. Data is not retained by OpenAI beyond the immediate request. Files are automatically deleted from this server after {$a} days.</p><p>By proceeding, you consent to this processing in accordance with our privacy policy.</p>';
-
-$string['gdpr_notice_title']     = 'Privacy Notice — AI Processing';
-
-$string['grade_override_saved']  = 'Grade saved successfully.';
-
-$string['grade_pending_review']  = 'Your grade is being reviewed by your instructor. You will be notified when it is released.';
-
-$string['gradenotification_body']      = <<<'EOT'
-Your grade for '{$a->activityname}' in '{$a->coursename}' has been released.
+$string['event_assessment_completed'] = 'AI assessment completed';
+$string['event_grade_issued'] = 'Grade issued';
+$string['event_submission_created'] = 'Submission created';
+$string['feedback'] = 'Feedback';
+$string['feedback_improvements'] = 'Areas for improvement:';
+$string['feedback_strengths'] = 'Strengths:';
+$string['final_grade'] = 'Final grade (0 to {$a})';
+$string['gdpr_consent_label'] = 'I have read the notice above and agree to my document, my voice and my screen recording being processed by OpenAI for this activity.';
+$string['gdpr_consent_required'] = 'You must provide GDPR consent on the activity page before uploading files.';
+$string['gdpr_default_notice'] = '<p>To complete this activity, the following will be sent to <strong>OpenAI</strong>, an external service, for analysis and evaluation: the PDF document you upload (complete, as you wrote it), the audio of your presentation and of your answers to the tribunal, and screenshots of your screen taken during the presentation.</p><p>Your Moodle name and email address are not sent; you are identified by a pseudonymous code. However, anything that identifies you <em>inside</em> your document, on your screen or in what you say will be included, and your voice is itself personal data. OpenAI processes this data under its own API data-usage terms, which your institution can provide.</p><p>Your teachers can read the document, watch the recording and listen to your answers.</p>';
+$string['gdpr_notice_title'] = 'Privacy Notice — AI Processing';
+$string['gdpr_retention'] = 'Recordings (screen, audio and screenshots) are deleted from this site automatically {$a} days after the attempt is graded. The document, transcripts and grades are kept with your course records.';
+$string['gdpr_retention_none'] = 'Recordings, the document, transcripts and grades are kept with your course records until the course or your data is deleted.';
+$string['grade_edited'] = 'edited';
+$string['grade_edited_by'] = 'Grade or feedback edited by {$a->name} on {$a->date}. Regenerating the AI evaluation will not overwrite it.';
+$string['grade_override_saved'] = 'Grade saved successfully.';
+$string['grade_pending_review'] = 'Your grade is being reviewed by your instructor. You will be notified when it is released.';
+$string['grade_published'] = 'Grade published. The student can now see it.';
+$string['grade_unpublished'] = 'Grade withdrawn. It is hidden from the student and removed from the gradebook until you publish it again.';
+$string['gradenotification_body'] = 'Your grade for \'{$a->activityname}\' in \'{$a->coursename}\' has been released.
 
 Grade: {$a->grade}
 
-View your results: {$a->link}
-EOT;
+View your results: {$a->link}';
+$string['gradenotification_bodyhtml'] = '<p>Your grade for <strong>{$a->activityname}</strong> in <em>{$a->coursename}</em> has been released.</p><p>Grade: <strong>{$a->grade}</strong></p><p><a href="{$a->link}">View your results</a></p>';
+$string['gradenotification_small'] = 'Grade released for {$a->activityname}';
+$string['gradenotification_subject'] = 'Your grade is ready: {$a->activityname}';
+$string['grading_header'] = 'Grading & Workflow';
+$string['grading_workflow'] = 'Hold grades for teacher review';
+$string['grading_workflow_help'] = 'If enabled, the AI grade is saved as a draft: the student sees "pending review" and nothing reaches the gradebook until a teacher publishes it, with or without changes. If disabled, the AI grade is released automatically.';
+$string['integrity_flags'] = 'Academic integrity concerns raised by the AI (verify before acting on them):';
+$string['invalidsubmissionstatus'] = 'This action is not allowed in the current submission state.';
+$string['license_banner_expired'] = 'AI Viva is not available because the license expired on {$a}. Please contact your administrator.';
+$string['license_banner_invalid'] = 'AI Viva is not available because the license key does not match this site ({$a}). Please contact your administrator.';
+$string['license_banner_missing'] = 'AI Viva is not available because the evaluation period has ended and no license key has been entered for this site. Please contact your administrator.';
+$string['license_banner_trial'] = 'AI Viva is running in evaluation mode: {$a->days} days remaining (ends {$a->expires}). All features are enabled. To obtain a license key, contact julio@rsmax.es.';
+$string['license_heading'] = 'License';
+$string['license_key'] = 'License key';
+$string['license_key_desc'] = 'Enter the license key for this site. The key is validated offline (no internet connection required) and is bound to this site\'s URL.
 
-$string['gradenotification_bodyhtml']  = '<p>Your grade for <strong>{$a->activityname}</strong> in <em>{$a->coursename}</em> has been released.</p><p>Grade: <strong>{$a->grade}</strong></p><p><a href="{$a->link}">View your results</a></p>';
+To obtain a license key, or to have your key reissued if your site URL changes, contact <a href="mailto:julio@rsmax.es">julio@rsmax.es</a>.
 
-$string['gradenotification_small']     = 'Grade released for {$a->activityname}';
-
-$string['gradenotification_subject']   = 'Your grade is ready: {$a->activityname}';
-
-$string['grading_header']    = 'Grading & Workflow';
-
-$string['grading_workflow']  = 'Enable grading workflow';
-
-$string['grading_workflow_help'] = 'If enabled, grades are held for teacher review before being released to students.';
-
-$string['groupsubmission']    = 'Group submission';
-
-$string['groupsubmission_help'] = 'Allow groups to submit together. Requires groups to be configured in the course.';
-
-$string['invalidsubmissionstatus']    = 'This action is not allowed in the current submission state.';
-
-$string['maxattempts']        = 'Maximum attempts';
-
-$string['maxattempts_help']   = 'Maximum number of times a student may attempt this activity. Set to 0 for unlimited.';
-
-$string['maximumgrade']      = 'Maximum grade';
-
-$string['model_economical']      = '(economical)';
-
-$string['model_recommended']     = '(recommended)';
-
-$string['modulename']        = 'AI Viva';
-
-$string['modulenameplural']  = 'AI Vivas';
-
-$string['no_overrides_yet']        = 'No overrides have been configured.';
-
-$string['no_submissions_yet']    = 'No submissions yet.';
-
-$string['noinstances']       = 'No AI Viva activities in this course.';
-
-$string['notify_student']    = 'Notify student when grade is published';
-
-$string['openai_api_error']          = 'AI service error: {$a}';
-
-$string['openai_model_eval']     = 'AI model for final evaluation';
-
-$string['openai_model_pdf']      = 'AI model for PDF analysis';
-
+If this field is left empty, AI Viva runs with full functionality for a {$a}-day evaluation period starting from first use. Once that period ends, the activity is disabled for participants until a valid key is entered.';
+$string['license_status_expired'] = 'Expired on {$a}';
+$string['license_status_invalid'] = 'Invalid — key does not match this site';
+$string['license_status_trial'] = 'Evaluation period — {$a->days} days remaining (ends {$a->expires}). Contact julio@rsmax.es for a license key.';
+$string['license_status_trial_expired'] = 'Evaluation period has ended — a license key is required. Contact julio@rsmax.es.';
+$string['license_status_valid'] = 'Valid — expires {$a}';
+$string['license_status_valid_lifetime'] = 'Valid — lifetime license';
+$string['maxattempts'] = 'Maximum attempts';
+$string['maxattempts_help'] = 'How many times a student may complete the activity. A new attempt can be started once the previous one has been graded and released. The best released grade is the one sent to the gradebook.';
+$string['maximumgrade'] = 'Maximum grade';
+$string['member_thinking'] = '{$a} is thinking…';
+$string['messageprovider:gradenotification'] = 'AI Viva grade released';
+$string['messageprovider:submissionnotification'] = 'AI Viva submission awaiting review';
+$string['mic_test_btn'] = 'Test my microphone';
+$string['mic_test_hint'] = 'Test your microphone before starting. Make sure your speakers or headphones are on: the examiners will speak to you.';
+$string['mic_test_ok'] = 'Microphone working. You can start when you are ready.';
+$string['mic_test_waiting'] = 'Say something… the bar should move when you speak.';
+$string['model_economical'] = '(economical)';
+$string['model_premium'] = '(maximum quality)';
+$string['model_recommended'] = '(recommended)';
+$string['modulename'] = 'AI Viva';
+$string['modulenameplural'] = 'AI Vivas';
+$string['new_attempt_notice'] = 'You may make another attempt. It starts from the beginning: a new document, a new presentation and a new tribunal session. Your best released grade is the one that counts.';
+$string['no_overrides_yet'] = 'No overrides have been configured.';
+$string['no_submissions_yet'] = 'No submissions yet.';
+$string['noinstances'] = 'No AI Viva activities in this course.';
+$string['nothing_submitted'] = 'Nothing submitted for this step.';
+$string['notify_student'] = 'Notify student when grade is published';
+$string['openai_api_error'] = 'AI service error: {$a}';
+$string['openai_model_eval'] = 'AI model for final evaluation';
+$string['openai_model_pdf'] = 'AI model for PDF analysis';
 $string['openai_model_tribunal'] = 'AI model for tribunal';
-
-$string['override_add']            = 'Add override';
-
+$string['override_add'] = 'Add override';
 $string['override_confirm_delete'] = 'Are you sure you want to delete this override?';
-
-$string['override_delete']         = 'Delete override';
-
-$string['override_deleted']        = 'Override deleted.';
-
-$string['override_edit']           = 'Edit override';
-
-$string['override_group']          = 'Group';
-
-$string['override_maxattempts']    = 'Maximum attempts';
-
-$string['override_saved']          = 'Override saved.';
-
-$string['override_timeclose']      = 'Close';
-
-$string['override_timeopen']       = 'Open';
-
-$string['override_type']           = 'Override type';
-
-$string['override_type_group']     = 'Group override';
-
-$string['override_type_user']      = 'User override';
-
-$string['override_user']           = 'User';
-
-$string['overrides_heading']       = 'User/Group Overrides';
-
-$string['pdf_analysis_done']     = '✅ Analysis complete. Your document is ready!';
-
-$string['pdf_dropzone_label']    = 'Drag and drop your PDF here, or click to browse';
-
-$string['pdf_selected']          = 'Selected: {$a->name} ({$a->size})';
-
+$string['override_deleted'] = 'Override deleted.';
+$string['override_edit'] = 'Edit override';
+$string['override_group'] = 'Group';
+$string['override_maxattempts'] = 'Maximum attempts';
+$string['override_saved'] = 'Override saved.';
+$string['override_timeclose'] = 'Close';
+$string['override_timeopen'] = 'Open';
+$string['override_type'] = 'Override type';
+$string['override_type_group'] = 'Group override';
+$string['override_type_user'] = 'User override';
+$string['override_user'] = 'User';
+$string['overrides_heading'] = 'User/Group Overrides';
+$string['pdf_dropzone_label'] = 'Drag and drop your PDF here, or click to browse';
+$string['pdf_maxsize'] = '(PDF, up to {$a} MB)';
+$string['pdf_selected'] = 'Selected: {$a->name} ({$a->size})';
+$string['pdf_selected_next'] = 'File ready. Press «Upload Document» to submit it.';
 $string['pdf_uploaded_analysing'] = '✅ Document received. The AI is analysing your work…';
-
 $string['pluginadministration'] = 'AI Viva administration';
-
-$string['pluginname']        = 'AI Viva';
-
-$string['privacy:metadata:aiviva_submissions']                        = 'Information about each student\'s submission, including AI-generated analyses and grades.';
-
-$string['privacy:metadata:aiviva_submissions:final_feedback']         = 'The final feedback text provided to the student.';
-
-$string['privacy:metadata:aiviva_submissions:final_grade']            = 'The final grade awarded to the student.';
-
-$string['privacy:metadata:aiviva_submissions:gdpr_consent']           = 'Whether the student gave GDPR consent.';
-
-$string['privacy:metadata:aiviva_submissions:gdpr_consent_time']      = 'When the student gave GDPR consent.';
-
-$string['privacy:metadata:aiviva_submissions:pdf_analysis']           = 'AI-generated analysis of the student\'s submitted PDF.';
-
-$string['privacy:metadata:aiviva_submissions:status']                 = 'Current status of the submission.';
-
-$string['privacy:metadata:aiviva_submissions:timecreated']            = 'When the submission was created.';
-
-$string['privacy:metadata:aiviva_submissions:timesubmitted']          = 'When the submission was completed.';
-
-$string['privacy:metadata:aiviva_submissions:tribunal_transcript']    = 'Full transcript of the AI viva tribunal session.';
-
-$string['privacy:metadata:aiviva_submissions:userid']                 = 'The ID of the student who made the submission.';
-
-$string['privacy:metadata:aiviva_submissions:video_analysis']         = 'AI-generated analysis of the student\'s video presentation.';
-
-$string['privacy:metadata:aiviva_submissions:video_transcript']       = 'Whisper transcript of the student\'s video presentation.';
-
-$string['privacy:metadata:aiviva_tribunal_messages']                  = 'Detailed log of each turn in the viva tribunal session.';
-
-$string['privacy:metadata:aiviva_tribunal_messages:message_text']     = 'The text of what was said.';
-
-$string['privacy:metadata:aiviva_tribunal_messages:speaker']          = 'Who spoke in this turn (tribunal member or participant).';
-
-$string['privacy:metadata:aiviva_tribunal_messages:timestamp']        = 'When this turn occurred.';
-
-$string['privacy:metadata:core_files']                               = 'PDF submissions, screen recordings, and tribunal audio responses are stored in the Moodle file system.';
-
-$string['privacy:metadata:openai']                                    = 'Content is sent to OpenAI\'s API for AI analysis. Student names are anonymised before sending. Data is not retained by OpenAI beyond the immediate API request.';
-
-$string['privacy:metadata:openai:anonymised_content']                 = 'Document or presentation content with the student\'s name replaced by an anonymised identifier.';
-
-$string['privacy:metadata:openai:audio_transcript']                   = 'Transcript of the student\'s spoken audio, used for evaluation.';
-
-$string['privacy:metadata:openai:conversation_turns']                 = 'The text of the student\'s spoken responses during the tribunal session.';
-
-$string['privacy:metadata:openai:video_frames']                       = 'Still frames extracted from the student\'s screen recording, sent for visual analysis.';
-
-$string['publish_grade']         = 'Publish grade';
-
-$string['push_to_talk']          = 'Hold to respond';
-
-$string['rate_limit_exceeded']       = 'You have made too many requests. Please wait a moment before trying again.';
-
-$string['recording_started']     = '🔴 Recording — begin your presentation!';
-
-$string['recording_time_up']     = '⏱ Time is up. Saving your presentation…';
-
-$string['regen_all']        = 'Re-analyse everything';
-
-$string['regen_confirm']    = 'This will replace the current AI analysis with a new one. It may take several minutes. Continue?';
-
-$string['regen_cooldown']             = 'Please wait before regenerating again. This operation has a cooldown to prevent excessive API usage.';
-
+$string['pluginname'] = 'AI Viva';
+$string['presentation_transcript'] = 'Presentation transcript';
+$string['privacy:metadata:aiviva_overrides'] = 'Per-user adjustments to the attempt limit and availability dates.';
+$string['privacy:metadata:aiviva_overrides:max_attempts'] = 'The adjusted attempt limit.';
+$string['privacy:metadata:aiviva_overrides:timeclose'] = 'The adjusted closing date.';
+$string['privacy:metadata:aiviva_overrides:timeopen'] = 'The adjusted opening date.';
+$string['privacy:metadata:aiviva_overrides:userid'] = 'The user the adjustment applies to.';
+$string['privacy:metadata:aiviva_submissions'] = 'Information about each student\'s submission, including AI-generated analyses and grades.';
+$string['privacy:metadata:aiviva_submissions:ai_grade'] = 'The grade proposed by the AI.';
+$string['privacy:metadata:aiviva_submissions:attempt'] = 'The attempt number.';
+$string['privacy:metadata:aiviva_submissions:final_feedback'] = 'The final feedback text provided to the student.';
+$string['privacy:metadata:aiviva_submissions:final_grade'] = 'The final grade awarded to the student.';
+$string['privacy:metadata:aiviva_submissions:gdpr_consent'] = 'Whether the student gave GDPR consent.';
+$string['privacy:metadata:aiviva_submissions:gdpr_consent_time'] = 'When the student gave GDPR consent.';
+$string['privacy:metadata:aiviva_submissions:grade_breakdown'] = 'The AI\'s score and feedback for each step.';
+$string['privacy:metadata:aiviva_submissions:grader_userid'] = 'The teacher who edited the grade or feedback.';
+$string['privacy:metadata:aiviva_submissions:pdf_analysis'] = 'AI-generated analysis of the student\'s submitted PDF.';
+$string['privacy:metadata:aiviva_submissions:status'] = 'Current status of the submission.';
+$string['privacy:metadata:aiviva_submissions:timecreated'] = 'When the submission was created.';
+$string['privacy:metadata:aiviva_submissions:timesubmitted'] = 'When the submission was completed.';
+$string['privacy:metadata:aiviva_submissions:tribunal_analysis'] = 'The AI\'s full evaluation of the attempt.';
+$string['privacy:metadata:aiviva_submissions:tribunal_briefing'] = 'The briefing about the student\'s work prepared by the AI for the tribunal.';
+$string['privacy:metadata:aiviva_submissions:tribunal_transcript'] = 'Full transcript of the AI viva tribunal session.';
+$string['privacy:metadata:aiviva_submissions:userid'] = 'The ID of the student who made the submission.';
+$string['privacy:metadata:aiviva_submissions:video_analysis'] = 'AI-generated analysis of the student\'s video presentation.';
+$string['privacy:metadata:aiviva_submissions:video_transcript'] = 'Automatic transcript of the student\'s presentation.';
+$string['privacy:metadata:aiviva_tribunal_messages'] = 'Detailed log of each turn in the viva tribunal session.';
+$string['privacy:metadata:aiviva_tribunal_messages:message_text'] = 'The text of what was said.';
+$string['privacy:metadata:aiviva_tribunal_messages:speaker'] = 'Who spoke in this turn (tribunal member or participant).';
+$string['privacy:metadata:aiviva_tribunal_messages:timestamp'] = 'When this turn occurred.';
+$string['privacy:metadata:core_files'] = 'PDF submissions, screen recordings, and tribunal audio responses are stored in the Moodle file system.';
+$string['privacy:metadata:openai'] = 'To analyse and evaluate an attempt, student content is sent to the OpenAI API. The student\'s Moodle name and email are not sent, but the content itself (document, voice, screen) may identify them. OpenAI handles the data under its API data-usage terms.';
+$string['privacy:metadata:openai:audio'] = 'The audio of the student\'s presentation and of each spoken answer to the tribunal, sent for transcription.';
+$string['privacy:metadata:openai:conversation_turns'] = 'The transcripts of the presentation and of the tribunal conversation.';
+$string['privacy:metadata:openai:document'] = 'The complete PDF document submitted by the student, including any personal data written in it.';
+$string['privacy:metadata:openai:pseudonym'] = 'A pseudonymous code derived from the user id, used instead of the student\'s name.';
+$string['privacy:metadata:openai:video_frames'] = 'Screenshots of the student\'s screen taken during the presentation, sent for visual analysis.';
+$string['publish_grade'] = 'Publish grade';
+$string['rate_limit_exceeded'] = 'You have made too many requests. Please wait a moment before trying again.';
+$string['recording_indicator'] = 'REC';
+$string['recording_instructions'] = 'You will be asked for your microphone and then for the screen or window to share. Recording starts after a short countdown and lasts up to {$a} minutes. You can review the recording before submitting it, and record again if you are not happy with it.';
+$string['recording_review'] = 'Review your recording, then submit it or record again.';
+$string['recording_size'] = 'Size: {$a} MB';
+$string['recording_started'] = '🔴 Recording — begin your presentation!';
+$string['recording_time_up'] = '⏱ Time is up. Saving your presentation…';
+$string['regen_all'] = 'Re-analyse everything';
+$string['regen_confirm'] = 'New AI output will replace the current one. This may take several minutes. A grade or feedback that a teacher has edited is kept; the student is not notified.';
+$string['regen_confirm_btn'] = 'Regenerate';
+$string['regen_cooldown'] = 'Please wait before regenerating again. This operation has a cooldown to prevent excessive API usage.';
 $string['regen_evaluation'] = 'Recalculate final evaluation';
-
-$string['regen_heading']    = 'Regenerate AI Analysis';
-
-$string['regen_pdf']        = 'Re-analyse PDF (Step 1)';
-
-$string['regen_running']    = 'Processing… please wait (may take 1–3 minutes)';
-
-$string['regen_success']    = 'Done! Reloading…';
-
-$string['regen_video']      = 'Re-analyse video (Step 2)';
-
-$string['results_title']         = 'Your Results';
-
-$string['retry_recording']       = 'Record again';
-
-$string['return_to_student']     = 'Return for revision';
-
-$string['safety_extra_prompt']   = 'Additional content restrictions (optional)';
-
-$string['safety_extra_prompt_help'] = 'Any extra safety instructions appended to every API call for this activity.';
-
-$string['security_header']       = 'Activity Security';
-
-$string['settings_advanced_heading']        = 'Advanced';
-
-$string['settings_anonymize_desc']          = 'Student real names are <strong>always</strong> replaced by a SHA-256 hash before sending to OpenAI. This cannot be disabled per activity.';
-
-$string['settings_anonymize_heading']       = 'Student Anonymisation';
-
-$string['settings_anonymize_salt']          = 'Anonymisation salt';
-
-$string['settings_anonymize_salt_desc']     = 'Random string added to the hash. Change this to invalidate all existing anonymised IDs (do this only if required for compliance).';
-
-$string['settings_api_rate_limit']          = 'Max API calls per user per minute';
-
-$string['settings_api_rate_limit_desc']     = 'Rate limit per Moodle user to prevent API abuse.';
-
-$string['settings_api_timeout']             = 'API request timeout (seconds)';
-
-$string['settings_api_timeout_desc']        = 'Maximum time to wait for a response from OpenAI. Increase for slow connections or long transcriptions.';
-
-$string['settings_apikeys_heading']         = 'OpenAI API Keys';
-
-$string['settings_apikeys_heading_desc']    = 'These keys are stored encrypted. They will be used for all AI Viva activities unless overridden at the activity level.';
-
-$string['settings_cost_estimate_desc']      = 'Estimated cost per complete student session (PDF + 10 min video + 10 min tribunal):<br/>GPT-4o: ~$0.15–$0.40 USD &nbsp;|&nbsp; GPT-4o mini: ~$0.03–$0.08 USD<br/>Whisper: ~$0.01 per minute &nbsp;|&nbsp; TTS: ~$0.01 per response';
-
-$string['settings_cost_estimate_heading']   = 'Cost Estimates';
-
-$string['settings_disk_warning_threshold']  = 'Disk space warning threshold (GB)';
-
-$string['settings_disk_warning_threshold_desc'] = 'Show an admin warning when free disk space drops below this value.';
-
-$string['settings_enable_gpt4o']            = 'Enable GPT-4o';
-
-$string['settings_enable_gpt4o_desc']       = 'GPT-4o — highest quality, higher cost.';
-
-$string['settings_enable_gpt4o_mini']       = 'Enable GPT-4o mini';
-
-$string['settings_enable_gpt4o_mini_desc']  = 'GPT-4o mini — good quality, lower cost.';
-
-$string['settings_ffmpeg_path']             = 'FFmpeg binary path';
-
-$string['settings_ffmpeg_path_desc']        = 'Absolute path to the FFmpeg binary for server-side video frame extraction (e.g. /usr/bin/ffmpeg). Leave blank to skip server-side extraction and rely on client-side frames only. Must be an absolute path — relative paths and shell commands are rejected for security reasons.';
-
-$string['settings_gdpr_heading']            = 'GDPR Notice';
-
-$string['settings_gdpr_heading_desc']       = 'This notice is shown to students before they begin. They must accept it to proceed.';
-
-$string['settings_gdpr_notice_text']        = 'GDPR notice text';
-
-$string['settings_gdpr_notice_text_desc']   = 'HTML text shown to students. You may include links to your privacy policy.';
-
-$string['settings_global_max_video_size']   = 'Global maximum video size (MB)';
-
+$string['regen_explanation'] = 'Re-run the AI on this attempt, for example after changing the prompts or the model. Every option ends by re-running the final evaluation.';
+$string['regen_heading'] = 'Regenerate AI Analysis';
+$string['regen_pdf'] = 'Re-analyse PDF (Step 1)';
+$string['regen_running'] = 'Processing… please wait (may take 1–3 minutes)';
+$string['regen_success'] = 'Done! Reloading…';
+$string['regen_video'] = 'Re-analyse video (Step 2)';
+$string['results_title'] = 'Your Results';
+$string['retry_recording'] = 'Record again';
+$string['safety_extra_prompt'] = 'Additional content restrictions (optional)';
+$string['safety_extra_prompt_help'] = 'Extra rules added to every prompt of this activity: document analysis, presentation analysis, each tribunal examiner and the final evaluation. For example: "Never comment on the candidate\'s accent."';
+$string['security_header'] = 'Activity Security';
+$string['settings_advanced_heading'] = 'Advanced';
+$string['settings_anonymize_desc'] = 'The student\'s Moodle name and email are never sent to OpenAI; prompts identify the student by a pseudonymous code generated with a secret key held by this site. The document, voice and screen content are sent as the student produced them and may identify the student.';
+$string['settings_anonymize_heading'] = 'Student identification';
+$string['settings_api_rate_limit'] = 'Max API calls per user per minute';
+$string['settings_api_rate_limit_desc'] = 'Maximum AI calls per minute for one student during the tribunal (each answer uses about three). Prevents API abuse.';
+$string['settings_api_timeout'] = 'API request timeout (seconds)';
+$string['settings_api_timeout_desc'] = 'Maximum time to wait for a response from OpenAI. Increase for slow connections or long transcriptions.';
+$string['settings_apikeys_heading'] = 'OpenAI API Keys';
+$string['settings_apikeys_heading_desc'] = 'These keys are stored encrypted. They will be used for all AI Viva activities unless overridden at the activity level.';
+$string['settings_cost_estimate_desc'] = 'OpenAI list prices per million input / output tokens (check openai.com for current prices):<br/>GPT-6.1 Sol: $2 / $10 &nbsp;|&nbsp; GPT-6 Astra: $10 / $50 &nbsp;|&nbsp; GPT-6 Luna: $0.10 / $0.50<br/>Transcription (gpt-transcribe): ~$0.0045 per minute of audio. Tribunal voices (gpt-4o-mini-tts) are billed separately.';
+$string['settings_cost_estimate_heading'] = 'Cost Estimates';
+$string['settings_enabled_models'] = 'Models available to teachers';
+$string['settings_enabled_models_desc'] = 'Models teachers can choose from in each activity. GPT-6.1 Sol balances quality and cost, GPT-6 Astra is the most capable and most expensive, and GPT-6 Luna is the cheapest. If none is ticked, all are offered.';
+$string['settings_gdpr_heading'] = 'GDPR Notice';
+$string['settings_gdpr_heading_desc'] = 'This notice is shown to students before they begin. They must accept it to proceed.';
+$string['settings_gdpr_notice_text'] = 'GDPR notice text';
+$string['settings_gdpr_notice_text_desc'] = 'Leave empty to show the built-in notice in the student\'s language. If you write your own (HTML allowed, shown in all languages), it must state what is sent to OpenAI. The retention period of each activity is added automatically.';
+$string['settings_global_max_video_size'] = 'Global maximum video size (MB)';
 $string['settings_global_max_video_size_desc'] = 'Individual activities cannot set a limit higher than this.';
-
-$string['settings_models_heading']          = 'Available AI Models';
-
-$string['settings_models_heading_desc']     = 'Select which models teachers can choose from when configuring an activity.';
-
-$string['settings_openai_apikey']           = 'Primary OpenAI API Key';
-
-$string['settings_openai_apikey_desc']      = 'Your OpenAI API key. Used for GPT-4o (PDF/video/tribunal), Whisper (transcription), and TTS.';
-
+$string['settings_models_heading'] = 'Available AI Models';
+$string['settings_models_heading_desc'] = 'Select which models teachers can choose from when configuring an activity.';
+$string['settings_openai_apikey'] = 'Primary OpenAI API Key';
+$string['settings_openai_apikey_desc'] = 'Your OpenAI API key. Used for PDF, video and tribunal analysis, transcription, and TTS.';
 $string['settings_openai_apikey_secondary'] = 'Secondary OpenAI API Key (optional)';
-
-$string['settings_openai_apikey_secondary_desc'] = 'If set, Whisper transcription and TTS calls will use this key.';
-
-$string['settings_safety_content_filter']   = 'Enable OpenAI content moderation';
-
+$string['settings_openai_apikey_secondary_desc'] = 'If set, transcription and TTS calls will use this key.';
+$string['settings_safety_content_filter'] = 'Enable OpenAI content moderation';
 $string['settings_safety_content_filter_desc'] = 'Runs all user content through the OpenAI Moderation API before sending to GPT. Blocks flagged content.';
-
-$string['settings_safety_max_tokens']       = 'Maximum tokens per API call';
-
-$string['settings_safety_max_tokens_desc']  = 'Hard limit on output tokens for all API calls. Increase for longer analyses.';
-
-$string['settings_security_heading']        = 'Security & Safety';
-
-$string['settings_security_heading_desc']   = 'Configure safety filters applied to all AI calls.';
-
-$string['settings_servertools_heading']      = 'Server tools';
-
-$string['settings_servertools_heading_desc'] = 'Optional server-side binaries used to improve video processing.';
-
-$string['settings_storage_heading']         = 'Storage & Retention';
-
-$string['settings_storage_heading_desc']    = 'Configure file storage limits and automatic purge schedules.';
-
-$string['settings_video_purge_days']        = 'Default video retention period (days)';
-
-$string['settings_video_purge_days_desc']   = 'Videos and audio files older than this are deleted automatically. Set to 0 to disable. Individual activities can override this.';
-
-$string['start_activity']     = 'I\'m ready to begin';
-
-$string['start_recording']       = 'Start screen recording';
-
-$string['step1_description']  = 'Instructions for the student';
-
+$string['settings_safety_max_tokens'] = 'Maximum tokens per API call';
+$string['settings_safety_max_tokens_desc'] = 'Upper limit on the length of each AI answer, in tokens. It does not limit how much student work the AI reads: documents and transcripts are always sent in full.';
+$string['settings_security_heading'] = 'Security & Safety';
+$string['settings_security_heading_desc'] = 'Configure safety filters applied to all AI calls.';
+$string['settings_storage_heading'] = 'Storage & Retention';
+$string['settings_storage_heading_desc'] = 'Configure file storage limits and automatic purge schedules.';
+$string['settings_video_purge_days'] = 'Default recording retention (days)';
+$string['settings_video_purge_days_desc'] = 'Default for new activities; each activity sets its own value.';
+$string['start_activity'] = 'I\'m ready to begin';
+$string['start_new_attempt'] = 'Start a new attempt';
+$string['start_recording'] = 'Start screen recording';
+$string['status_draft'] = 'Not started';
+$string['status_graded'] = 'Graded';
+$string['status_grading'] = 'Being evaluated';
+$string['status_step1'] = 'Document being analysed';
+$string['status_step2'] = 'Presentation step';
+$string['status_step3'] = 'Tribunal step';
+$string['status_submitted'] = 'Awaiting evaluation';
+$string['step1_description'] = 'Instructions for the student';
 $string['step1_description_help'] = 'Describe what PDF document the student should upload.';
-
-$string['step1_header']       = 'Step 1 — PDF Document';
-
-$string['step1_prompt']       = 'AI analysis prompt';
-
-$string['step1_prompt_help']  = 'Prompt sent to the AI to analyse the student\'s PDF. The student\'s name is automatically anonymised.';
-
-$string['step1_title']        = 'PDF Document';
-
-$string['step2_description']  = 'Instructions for the student';
-
+$string['step1_header'] = 'Step 1 — PDF Document';
+$string['step1_maxfilesize'] = 'Maximum PDF size (MB)';
+$string['step1_maxfilesize_help'] = 'Largest PDF a student may upload. The whole document is sent to the AI, so very large files cost more and take longer.';
+$string['step1_prompt'] = 'AI analysis prompt';
+$string['step1_prompt_help'] = 'Prompt sent to the AI to analyse the student\'s PDF. The student\'s name is automatically anonymised.';
+$string['step1_title'] = 'PDF Document';
+$string['step2_description'] = 'Instructions for the student';
 $string['step2_description_help'] = 'Describe what the student should present in their screen recording.';
-
-$string['step2_duration']     = 'Maximum presentation duration';
-
-$string['step2_header']       = 'Step 2 — Video Presentation';
-
-$string['step2_maxfilesize']  = 'Maximum video file size (MB)';
-
+$string['step2_duration'] = 'Maximum presentation duration';
+$string['step2_header'] = 'Step 2 — Video Presentation';
+$string['step2_maxfilesize'] = 'Maximum video file size (MB)';
 $string['step2_maxfilesize_help'] = 'Cannot exceed the global maximum configured by the site administrator.';
-
-$string['step2_prompt']       = 'AI video analysis prompt';
-
-$string['step2_prompt_help']  = 'Prompt sent to the AI to analyse the video presentation (frames + transcript).';
-
-$string['step2_title']        = 'Video Presentation';
-
-$string['step3_duration']         = 'Tribunal session duration (minutes)';
-
-$string['step3_header']           = 'Step 3 — Viva Tribunal';
-
-$string['step3_prompt_eval']      = 'Final evaluation prompt';
-
+$string['step2_prompt'] = 'AI video analysis prompt';
+$string['step2_prompt_help'] = 'Prompt sent to the AI to analyse the video presentation (frames + transcript).';
+$string['step2_title'] = 'Video Presentation';
+$string['step3_duration'] = 'Tribunal session duration (minutes)';
+$string['step3_header'] = 'Step 3 — Viva Tribunal';
+$string['step3_prompt_eval'] = 'Final evaluation prompt';
 $string['step3_prompt_eval_help'] = 'Instructions to the AI for generating the final grade and feedback.';
+$string['step3_title'] = 'Viva Tribunal';
+$string['stop_recording'] = 'Finish presentation';
+$string['submission_deleted'] = 'Submission deleted.';
+$string['submissionnotification_body'] = 'A student ({$a->studentname}) has completed \'{$a->activityname}\' in \'{$a->coursename}\' and their submission is ready for your review.
 
-$string['step3_title']            = 'Viva Tribunal';
-
-$string['stop_recording']        = 'Finish presentation';
-
-$string['submission']            = 'Submission';
-
-$string['submission_deleted']        = 'Submission deleted.';
-
-$string['submissionnotification_body']    = <<<'EOT'
-A student ({$a->studentname}) has completed '{$a->activityname}' in '{$a->coursename}' and their submission is ready for your review.
-
-View submissions: {$a->link}
-EOT;
-
+View submissions: {$a->link}';
 $string['submissionnotification_bodyhtml'] = '<p>Student <strong>{$a->studentname}</strong> has completed <em>{$a->activityname}</em> and their submission is ready for review.</p><p><a href="{$a->link}">View submissions</a></p>';
-
-$string['submissionnotification_small']   = 'New submission: {$a->activityname}';
-
+$string['submissionnotification_small'] = 'New submission: {$a->activityname}';
 $string['submissionnotification_subject'] = 'New submission for review: {$a->activityname}';
-
-$string['submissions_heading']   = 'Submissions';
-
-$string['submit_video']          = 'Submit Presentation';
-
-$string['task_analyze_pdf']            = 'AI Viva: Analyse submitted PDF';
-
-$string['task_analyze_video']          = 'AI Viva: Analyse video presentation';
-
-$string['task_evaluate_submission']    = 'AI Viva: Generate final evaluation';
-
-$string['task_purge_old_files']        = 'AI Viva: Purge old video/audio files';
-
-$string['tribunal_ending']       = 'The session is concluding…';
-
-$string['tribunal_finished']     = 'Tribunal session ended. Your evaluation is being prepared…';
-
-$string['tribunal_loading']      = 'Connecting to the tribunal…';
-
-$string['tribunal_log']          = 'Tribunal Log';
-
-$string['tribunal_member_avatar']        = 'Avatar';
-
+$string['submissions_heading'] = 'Submissions';
+$string['submit_video'] = 'Submit Presentation';
+$string['task_analyze_pdf'] = 'AI Viva: Analyse submitted PDF';
+$string['task_analyze_video'] = 'AI Viva: Analyse video presentation';
+$string['task_close_abandoned_tribunals'] = 'Close abandoned tribunal sessions';
+$string['task_evaluate_submission'] = 'AI Viva: Generate final evaluation';
+$string['task_purge_old_files'] = 'AI Viva: Purge old video/audio files';
+$string['timeclose'] = 'Closes';
+$string['timeopen'] = 'Opens';
+$string['timeopen_help'] = 'Students can start and work on an attempt only between these dates. A tribunal session that is already running when the activity closes may be finished. Overrides can change the dates for a user or a group.';
+$string['tribunal_ending'] = 'The session is concluding…';
+$string['tribunal_finished'] = 'The session has ended. Your evaluation is being prepared; this page will update by itself.';
+$string['tribunal_leave_warning'] = 'The tribunal session is running and its clock will not stop if you leave.';
+$string['tribunal_loading'] = 'Connecting to the tribunal…';
+$string['tribunal_log'] = 'Tribunal Log';
+$string['tribunal_member_avatar'] = 'Avatar';
 $string['tribunal_member_avatar_custom'] = 'Upload custom avatar image';
-
-$string['tribunal_member_header']        = 'Tribunal Member {$a}';
-
-$string['tribunal_member_name']          = 'Name';
-
-$string['tribunal_member_prompt']        = 'Personality & examination style';
-
-$string['tribunal_member_prompt_help']   = 'Describe how this examiner approaches questioning — tone, specialisation, rigour level.';
-
-$string['tribunal_member_role']          = 'Role / Title';
-
-$string['tribunal_member_voice']         = 'TTS Voice';
-
-$string['tribunal_ready_notice'] = 'You are about to start your oral defence session. Once you press the button below, the timer will start and the panel will begin questioning you. You will not be able to go back or pause the session.';
-
-$string['tribunal_ready_title']  = 'Defence Room — Ready to Begin?';
-
-$string['tribunal_room_title']   = 'Defence Room — {$a}';
-
-$string['tribunal_start_btn']    = 'Start Tribunal Session';
-
-$string['tribunal_thinking']     = 'The panel is deliberating…';
-
-$string['unlimited']          = 'Unlimited';
-
-$string['upload_pdf']            = 'Upload Document';
-
-$string['uploading_video']       = 'Uploading your recording…';
-
-$string['video_analysis_done']   = '✅ Presentation analysed. Ready for the tribunal!';
-
+$string['tribunal_member_header'] = 'Tribunal Member {$a}';
+$string['tribunal_member_name'] = 'Name';
+$string['tribunal_member_prompt'] = 'Personality & examination style';
+$string['tribunal_member_prompt_help'] = 'Describe how this examiner approaches questioning — tone, specialisation, rigour level.';
+$string['tribunal_member_role'] = 'Role / Title';
+$string['tribunal_member_voice'] = 'TTS Voice';
+$string['tribunal_member_voice_help'] = 'The voice used to read this examiner\'s questions aloud.';
+$string['tribunal_ready_notice'] = 'You are about to start your oral defence. Once you press Start, a {$a}-minute clock begins and cannot be paused, even if you close this page. The examiners will speak; to answer, press the button, speak, and press it again to send.';
+$string['tribunal_ready_title'] = 'Defence Room — Ready to Begin?';
+$string['tribunal_resume_btn'] = 'Resume the session';
+$string['tribunal_resume_notice'] = 'Your tribunal session is already under way and its clock has kept running. Test your microphone and resume where you left off.';
+$string['tribunal_room_title'] = 'Defence Room — {$a}';
+$string['tribunal_start_btn'] = 'Start Tribunal Session';
+$string['unlimited'] = 'Unlimited';
+$string['unpublish_grade'] = 'Withdraw grade';
+$string['upload_pdf'] = 'Upload Document';
+$string['uploading_video'] = 'Uploading your recording…';
+$string['video_purge_days'] = 'Keep recordings for (days)';
+$string['video_purge_days_help'] = 'Screen recordings, audio and screenshots are deleted this many days after an attempt is graded and released (or after an unfinished attempt was last touched). The PDF, transcripts and grades are kept. Enter 0 to keep recordings indefinitely.';
+$string['video_purged'] = 'The recording was deleted automatically at the end of its retention period.';
 $string['video_uploaded_analysing'] = '✅ Recording uploaded. Analysing your presentation…';
-
-$string['voice_alloy']   = 'Alloy — versatile, neutral';
-
-$string['voice_echo']    = 'Echo — resonant, male';
-
-$string['voice_fable']   = 'Fable — expressive, British';
-
-$string['voice_nova']    = 'Nova — warm, female';
-
-$string['voice_onyx']    = 'Onyx — deep, authoritative';
-
+$string['view_submissions'] = 'View submissions';
+$string['voice_alloy'] = 'Alloy — versatile, neutral';
+$string['voice_ash'] = 'Ash';
+$string['voice_ballad'] = 'Ballad';
+$string['voice_cedar'] = 'Cedar';
+$string['voice_coral'] = 'Coral';
+$string['voice_echo'] = 'Echo — resonant, male';
+$string['voice_fable'] = 'Fable — expressive, British';
+$string['voice_marin'] = 'Marin';
+$string['voice_nova'] = 'Nova — warm, female';
+$string['voice_onyx'] = 'Onyx — deep, authoritative';
+$string['voice_sage'] = 'Sage';
 $string['voice_shimmer'] = 'Shimmer — soft, clear';
-
-$string['warning_1min']          = '⚠️ 1 minute remaining';
-
-$string['warning_2min']          = '⚠️ 2 minutes remaining';
-
-$string['workflow_inreview']     = 'In review';
-
-$string['workflow_readyforrelease'] = 'Ready for release';
-
-$string['workflow_released']     = 'Released';
-
-$string['your_grade']            = 'Your grade:';
+$string['voice_verse'] = 'Verse';
+$string['waiting_hint'] = 'This page updates by itself. There is no need to reload it.';
+$string['waiting_slow'] = 'This is taking longer than usual. You can leave this page and come back later; your work is saved.';
+$string['warning_1min'] = '⚠️ 1 minute remaining';
+$string['warning_2min'] = '⚠️ 2 minutes remaining';
+$string['weight_pdf'] = 'Weight of the document (%)';
+$string['weight_pdf_help'] = 'The AI scores the document, the presentation and the tribunal separately from 0 to 100. The final grade is the weighted average with these three percentages, which must add up to 100.';
+$string['weight_tribunal'] = 'Weight of the tribunal (%)';
+$string['weight_video'] = 'Weight of the presentation (%)';
+$string['workflow_inreview'] = 'In review';
+$string['workflow_released'] = 'Released';
+$string['you'] = 'You';
+$string['your_grade'] = 'Your grade:';

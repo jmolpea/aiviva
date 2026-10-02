@@ -15,23 +15,22 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Adhoc task: transcribes and analyses a student video submission.
+ * Adhoc task: analyse a submitted presentation recording.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_aiviva\task;
 
 /**
- * Background task that runs Whisper transcription + GPT-4o Vision analysis
- * on the student's recorded video presentation.
+ * Runs the presentation transcription and analysis from cron when it could
+ * not be completed during the upload request.
  *
  * Custom data keys:
- *  - submissionid (int)   — aiviva_submissions.id
- *  - cmid         (int)   — course_modules.id
- *  - frames       (array) — base64 JPEG frames extracted client-side
+ *  - submissionid (int) - aiviva_submissions.id
+ *  - cmid         (int) - course_modules.id
  */
 class analyze_video_task extends \core\task\adhoc_task {
     /**
@@ -49,64 +48,33 @@ class analyze_video_task extends \core\task\adhoc_task {
     public function execute(): void {
         global $DB;
 
-        $data         = $this->get_custom_data();
-        $submissionid = (int)($data->submissionid ?? 0);
-        $cmid         = (int)($data->cmid ?? 0);
-        $frames       = (array)($data->frames ?? []);
+        $data       = $this->get_custom_data();
+        $submission = $DB->get_record('aiviva_submissions', ['id' => (int)($data->submissionid ?? 0)]);
+        $cm         = get_coursemodule_from_id('aiviva', (int)($data->cmid ?? 0));
 
-        if (!$submissionid || !$cmid) {
-            mtrace('aiviva analyze_video_task: missing submissionid or cmid');
+        // Nothing to do if the attempt was deleted or has already moved on.
+        if (!$submission || !$cm || $submission->status !== 'step2') {
             return;
         }
 
-        $submission = $DB->get_record('aiviva_submissions', ['id' => $submissionid]);
-        if (!$submission) {
-            mtrace('aiviva analyze_video_task: submission not found: ' . $submissionid);
-            return;
-        }
-
-        $cm     = get_coursemodule_from_id('aiviva', $cmid, 0, false, MUST_EXIST);
-        $aiviva = $DB->get_record('aiviva', ['id' => $cm->instance], '*', MUST_EXIST);
+        $aiviva  = $DB->get_record('aiviva', ['id' => $cm->instance], '*', MUST_EXIST);
         $context = \context_module::instance($cm->id);
 
-        // Fetch the stored video file.
-        $fs    = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'mod_aiviva', 'submission_video', $submission->id, '', false);
-
-        if (empty($files)) {
-            mtrace('aiviva analyze_video_task: no video file found for submission ' . $submissionid);
-            $DB->set_field('aiviva_submissions', 'status', 'step3', ['id' => $submissionid]);
-            return;
-        }
-
-        $file = reset($files);
-
+        $update = (object)['id' => $submission->id, 'status' => 'step3', 'timemodified' => time()];
         try {
-            $analyzer = new \mod_aiviva\api\video_analyzer();
-            $result   = $analyzer->analyse(
-                $file,
-                $aiviva->step2_prompt ?? '',
-                $aiviva->openai_model_tribunal ?? 'gpt-4o',
-                $submission->userid,
-                $frames
-            );
+            $result = (new \mod_aiviva\api\video_analyzer())->analyse($context, $submission, $aiviva);
+            $update->video_transcript = $result['transcript'];
+            $update->video_analysis   = $result['analysis'];
 
-            $DB->set_field('aiviva_submissions', 'video_transcript', $result['transcript'], ['id' => $submissionid]);
-            $DB->set_field('aiviva_submissions', 'video_analysis', $result['analysis'], ['id' => $submissionid]);
-            $DB->set_field('aiviva_submissions', 'status', 'step3', ['id' => $submissionid]);
-            $DB->set_field('aiviva_submissions', 'timemodified', time(), ['id' => $submissionid]);
-
-            mtrace('aiviva analyze_video_task: completed for submission ' . $submissionid);
-        } catch (\moodle_exception $e) {
-            mtrace('aiviva analyze_video_task error: ' . $e->getMessage());
-            // Still advance to step3 so the student is not blocked.
-            $DB->set_field('aiviva_submissions', 'status', 'step3', ['id' => $submissionid]);
-            $DB->set_field(
-                'aiviva_submissions',
-                'video_analysis',
-                'Analysis unavailable: ' . $e->getMessage(),
-                ['id' => $submissionid]
-            );
+            // While the student is still waiting, get the tribunal ready so that it starts at once.
+            $submission->video_transcript = $result['transcript'];
+            $submission->video_analysis   = $result['analysis'];
+            \mod_aiviva\api\tribunal_conductor::prepare_ahead($aiviva, $submission, $context);
+        } catch (\Throwable $e) {
+            // The student is not held back; a teacher can regenerate the analysis later.
+            mtrace('aiviva analyze_video_task: analysis failed for submission ' . $submission->id . ': ' . $e->getMessage());
         }
+
+        $DB->update_record('aiviva_submissions', $update);
     }
 }

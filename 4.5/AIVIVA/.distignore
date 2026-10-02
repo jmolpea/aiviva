@@ -1,0 +1,36 @@
+# Files and directories excluded from the distribution zip.
+# Consumed by build_zip.ps1 — not a standard Moodle file.
+#
+# NOTE: amd/, pix/ and backup/ are NOT excluded — they are required at runtime.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Tests and dev tooling
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+.vscode
+.idea
+node_modules
+package.json
+package-lock.json
+Gruntfile.js
+.grunt
+
+# Distribution tooling itself
+build_zip.ps1
+build_zip.sh
+.distignore
+
+# Internal RSMAX tooling and the private signing key — must NEVER ship.
+generate_license.php
+license_private.key
+
+# Internal docs and assistants
+.claude
+CLAUDE.md
+*.md

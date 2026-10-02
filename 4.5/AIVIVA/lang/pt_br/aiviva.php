@@ -18,514 +18,372 @@
  * Brazilian Portuguese language strings for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['activityname']   = 'Nome da atividade';
-
-$string['aiviva:addinstance']        = 'Adicionar uma atividade AI Viva';
-
-$string['aiviva:grade']              = 'Avaliar envios';
-
-$string['aiviva:manageoverrides']    = 'Gerenciar substituições de usuário e grupo';
-
-$string['aiviva:manageplugin']       = 'Gerenciar configurações do plugin';
-
-$string['aiviva:submit']             = 'Enviar uma apresentação';
-
-$string['aiviva:view']               = 'Visualizar a atividade AI Viva';
-
+$string['activityname'] = 'Nome da atividade';
+$string['ai_analysis'] = 'Análise da IA';
+$string['ai_evaluation'] = 'Avaliação da IA';
+$string['aiviva:addinstance'] = 'Adicionar uma atividade AI Viva';
+$string['aiviva:grade'] = 'Avaliar envios';
+$string['aiviva:manageoverrides'] = 'Gerenciar substituições de usuário e grupo';
+$string['aiviva:manageplugin'] = 'Gerenciar configurações do plugin';
+$string['aiviva:submit'] = 'Enviar uma apresentação';
+$string['aiviva:view'] = 'Visualizar a atividade AI Viva';
 $string['aiviva:viewallsubmissions'] = 'Visualizar todos os envios';
-
-$string['attemptsinfo']    = 'Tentativas usadas: {$a->used} / {$a->max} ({$a->remaining} restantes)';
-
-$string['avatar_1']      = 'Avatar 1 (neutro)';
-
-$string['avatar_2']      = 'Avatar 2 (feminino)';
-
-$string['avatar_3']      = 'Avatar 3 (masculino)';
-
+$string['answer_start'] = 'Começar a responder';
+$string['answer_stop'] = 'Terminar e enviar resposta';
+$string['answer_too_short'] = 'Foi curto demais para ser uma resposta. Pressione o botão, fale e pressione novamente para enviar.';
+$string['answer_transcribing'] = 'Ouvindo sua resposta…';
+$string['attempt_in_progress'] = 'Esta tentativa ainda está em andamento. A avaliação e a regeneração ficam disponíveis quando o estudante terminar a banca.';
+$string['attempt_number'] = 'Tentativa {$a}';
+$string['attemptsinfo'] = 'Tentativa {$a->used} de {$a->max}';
+$string['availability_closes'] = 'Fecha: {$a}';
+$string['availability_opens'] = 'Abre: {$a}';
+$string['avatar_1'] = 'Avatar 1 (neutro)';
+$string['avatar_2'] = 'Avatar 2 (feminino)';
+$string['avatar_3'] = 'Avatar 3 (masculino)';
 $string['avatar_custom'] = 'Imagem personalizada';
-
-$string['backup_files']       = 'Incluir arquivos de vídeo/áudio (pode ser grande)';
-
-$string['backup_settings']    = 'Incluir configurações da atividade AI Viva';
-
-$string['backup_submissions'] = 'Incluir envios de estudantes';
-
-$string['col_actions']          = 'Ações';
-
-$string['col_grade']            = 'Nota';
-
-$string['col_status']           = 'Status';
-
-$string['col_student']          = 'Estudante';
-
-$string['col_submitted']        = 'Enviado em';
-
-$string['col_workflow']         = 'Status de revisão';
-
-$string['completiongrade']  = 'O estudante deve receber uma nota';
-
-$string['completionsubmit'] = 'O estudante deve enviar a atividade';
-
+$string['back_to_submissions'] = 'Voltar a todos os envios';
+$string['breakdown_score'] = 'Pontuação';
+$string['breakdown_step'] = 'Etapa';
+$string['breakdown_weight'] = 'Peso';
+$string['cachedef_ratelimit'] = 'Limitação de chamadas à IA e regenerações';
+$string['cachedef_tribunal'] = 'Aberturas de banca preparadas';
+$string['col_actions'] = 'Ações';
+$string['col_aigrade'] = 'Nota da IA';
+$string['col_attempt'] = 'Tentativa';
+$string['col_grade'] = 'Nota';
+$string['col_status'] = 'Status';
+$string['col_student'] = 'Estudante';
+$string['col_submitted'] = 'Enviado em';
+$string['col_workflow'] = 'Status de revisão';
+$string['completiondetail:submit'] = 'Concluir as três etapas';
+$string['completionsubmit'] = 'O estudante deve concluir as três etapas (documento, apresentação e banca)';
 $string['confirm_delete_submission'] = 'Tem certeza de que deseja excluir este envio? Esta ação não pode ser desfeita.';
-
-$string['confirm_pdf_upload']     = 'Confirma que seu documento está pronto? Uma vez enviado, não poderá ser alterado nesta tentativa.';
-
-$string['confirm_video_submit']   = 'Enviar sua gravação? Esta tentativa será definitiva.';
-
-$string['content_flagged']          = 'O conteúdo foi sinalizado pelo filtro de segurança de IA.';
-
-$string['continue_to_step2']     = 'Continuar para a Etapa 2 →';
-
-$string['continue_to_step3']     = 'Continuar para a Etapa 3 →';
-
-$string['conversation_log']       = 'Registro da sessão';
-
-$string['delete_submission']         = 'Excluir envio';
-
-$string['error_analysis_timeout']   = 'A análise está demorando mais que o esperado. Atualize a página para verificar o progresso.';
-
-$string['error_duration_invalid']   = 'A duração deve ser de pelo menos 1 minuto.';
-
-$string['error_file_too_large']     = 'O arquivo excede o tamanho máximo de {$a} MB.';
-
+$string['confirm_pdf_upload'] = 'Confirma que seu documento está pronto? Uma vez enviado, não poderá ser alterado nesta tentativa.';
+$string['confirm_video_submit'] = 'Enviar esta gravação? Ela não poderá ser alterada depois nesta tentativa.';
+$string['content_flagged'] = 'O conteúdo foi sinalizado pelo filtro de segurança de IA.';
+$string['error_answer_empty'] = 'Não foi possível ouvir fala na sua resposta. Verifique o microfone e responda novamente.';
+$string['error_browser_unsupported'] = 'Seu navegador não consegue gravar áudio ou compartilhar a tela. Use uma versão atual do Chrome, Edge, Firefox ou Safari.';
+$string['error_closebeforeopen'] = 'A data de encerramento deve ser posterior à de abertura.';
+$string['error_closed'] = 'Esta atividade está encerrada e não aceita mais envios.';
+$string['error_duration_invalid'] = 'A duração deve ser de pelo menos 1 minuto.';
+$string['error_file_too_large'] = 'O arquivo excede o tamanho máximo de {$a} MB.';
+$string['error_grade_invalid'] = 'A nota máxima deve ser pelo menos 1.';
+$string['error_grade_range'] = 'A nota deve ser um número entre 0 e {$a}.';
+$string['error_invalid_filetype'] = 'Este tipo de arquivo não é aceito.';
 $string['error_maxfilesize_exceeds_global'] = 'Não pode exceder o máximo global de {$a} MB definido pelo administrador.';
-
 $string['error_maxfilesize_toosmall'] = 'O tamanho máximo deve ser de pelo menos 1 MB.';
-
-$string['error_not_pdf']            = 'Apenas arquivos PDF são aceitos.';
-
-$string['error_screen_permission']  = 'Permissão de gravação de tela negada. Por favor, autorize a captura de tela e tente novamente.';
-
-$string['error_video_too_large']    = 'O vídeo excede o tamanho máximo de {$a} MB.';
-
-$string['evaluation_complete']    = '✅ Avaliação concluída. Redirecionando…';
-
-$string['evaluation_pending']     = 'A banca de IA está avaliando seu desempenho. Isso pode levar um momento…';
-
+$string['error_mic_permission'] = 'O acesso ao microfone foi negado ou nenhum microfone foi encontrado. Permita o acesso ao microfone no navegador e tente novamente.';
+$string['error_no_pdf'] = 'Não há PDF armazenado para esta tentativa.';
+$string['error_no_recording'] = 'Não há gravação armazenada para esta tentativa (pode ter sido removida).';
+$string['error_nolicense'] = 'O AI Viva não tem uma licença válida para este site, portanto a atividade está desativada. Entre em contato com o administrador.';
+$string['error_not_pdf'] = 'Apenas arquivos PDF são aceitos.';
+$string['error_notopen'] = 'Esta atividade ainda não está aberta.';
+$string['error_purge_days'] = 'Informe 0 para manter as gravações, ou um número positivo de dias.';
+$string['error_regen_not_finished'] = 'Isto só é possível depois que o estudante terminar a banca.';
+$string['error_screen_permission'] = 'Permissão de gravação de tela negada. Por favor, autorize a captura de tela e tente novamente.';
+$string['error_tribunal_not_finished'] = 'A sessão da banca ainda não terminou.';
+$string['error_upload_failed'] = 'Não foi possível enviar o arquivo. Tente novamente.';
+$string['error_video_too_large'] = 'O vídeo excede o tamanho máximo de {$a} MB.';
+$string['error_weights'] = 'Os três pesos devem ser números inteiros de 0 a 100 que somem 100.';
+$string['evaluation_pending'] = 'A banca de IA está avaliando seu desempenho. Isso pode levar um momento…';
 $string['evaluator_invalid_response'] = 'O avaliador de IA retornou uma resposta inválida. Contate seu professor.';
-
 $string['event_assessment_completed'] = 'Avaliação por IA concluída';
-
-$string['event_grade_issued']         = 'Nota emitida';
-
-$string['event_submission_created']   = 'Envio criado';
-
-$string['feedback']              = 'Feedback';
-
-$string['gdpr_consent_label']  = 'Entendo e concordo que meu PDF, vídeo e áudio serão processados pela API da OpenAI.';
-
-$string['gdpr_consent_required']   = 'Você deve fornecer consentimento LGPD na página da atividade antes de enviar arquivos.';
-
-$string['gdpr_default_notice'] = '<p>Para concluir esta atividade, seu documento PDF, gravação de tela e respostas faladas serão enviados à <strong>API da OpenAI</strong> para análise e avaliação.</p><p>Seu nome pessoal será substituído por um identificador anônimo antes de qualquer envio de dados. Os dados não são retidos pela OpenAI além da requisição imediata. Os arquivos são excluídos automaticamente deste servidor após {$a} dias.</p><p>Ao prosseguir, você consente com esse processamento de acordo com nossa política de privacidade.</p>';
-
-$string['gdpr_notice_title']   = 'Aviso de privacidade — Processamento por IA';
-
+$string['event_grade_issued'] = 'Nota emitida';
+$string['event_submission_created'] = 'Envio criado';
+$string['feedback'] = 'Feedback';
+$string['feedback_improvements'] = 'Pontos a melhorar:';
+$string['feedback_strengths'] = 'Pontos fortes:';
+$string['final_grade'] = 'Nota final (0 a {$a})';
+$string['gdpr_consent_label'] = 'Li o aviso acima e concordo que meu documento, minha voz e a gravação da minha tela sejam processados pela OpenAI para esta atividade.';
+$string['gdpr_consent_required'] = 'Você deve fornecer consentimento LGPD na página da atividade antes de enviar arquivos.';
+$string['gdpr_default_notice'] = '<p>Para concluir esta atividade, será enviado à <strong>OpenAI</strong>, um serviço externo, para análise e avaliação: o documento PDF que você enviar (completo, como você o escreveu), o áudio da sua apresentação e das suas respostas à banca, e capturas da sua tela feitas durante a apresentação.</p><p>Seu nome no Moodle e seu e-mail não são enviados; você é identificado por um código pseudônimo. No entanto, tudo o que identifique você <em>dentro</em> do seu documento, na sua tela ou no que você disser será incluído, e a sua voz é, por si só, um dado pessoal. A OpenAI trata esses dados conforme os seus próprios termos de uso de dados da API, que a sua instituição pode fornecer.</p><p>Seus professores podem ler o documento, assistir à gravação e ouvir as suas respostas.</p>';
+$string['gdpr_notice_title'] = 'Aviso de privacidade — Processamento por IA';
+$string['gdpr_retention'] = 'As gravações (tela, áudio e capturas) são excluídas automaticamente deste site {$a} dias após a tentativa ser avaliada. O documento, as transcrições e as notas são mantidos com os registros do curso.';
+$string['gdpr_retention_none'] = 'As gravações, o documento, as transcrições e as notas são mantidos com os registros do curso até que o curso ou os seus dados sejam excluídos.';
+$string['grade_edited'] = 'editada';
+$string['grade_edited_by'] = 'Nota ou comentários editados por {$a->name} em {$a->date}. Regenerar a avaliação da IA não os substituirá.';
 $string['grade_override_saved'] = 'Nota salva com sucesso.';
-
-$string['grade_pending_review']  = 'Sua nota está sendo revisada pelo(a) professor(a). Você será notificado(a) quando for publicada.';
-
-$string['gradenotification_body']     = <<<'EOT'
-Sua nota para '{$a->activityname}' em '{$a->coursename}' foi publicada.
+$string['grade_pending_review'] = 'Sua nota está sendo revisada pelo(a) professor(a). Você será notificado(a) quando for publicada.';
+$string['grade_published'] = 'Nota publicada. O estudante já pode vê-la.';
+$string['grade_unpublished'] = 'Nota retirada. Ela fica oculta para o estudante e fora do livro de notas até você publicá-la novamente.';
+$string['gradenotification_body'] = 'Sua nota para \'{$a->activityname}\' em \'{$a->coursename}\' foi publicada.
 
 Nota: {$a->grade}
 
-Ver resultados: {$a->link}
-EOT;
-
+Ver resultados: {$a->link}';
 $string['gradenotification_bodyhtml'] = '<p>Sua nota para <strong>{$a->activityname}</strong> em <em>{$a->coursename}</em> foi publicada.</p><p>Nota: <strong>{$a->grade}</strong></p><p><a href="{$a->link}">Ver resultados</a></p>';
-
-$string['gradenotification_small']    = 'Nota publicada: {$a->activityname}';
-
-$string['gradenotification_subject']  = 'Sua nota está disponível: {$a->activityname}';
-
-$string['grading_header']   = 'Avaliação e fluxo de trabalho';
-
-$string['grading_workflow'] = 'Ativar revisão do professor antes de publicar';
-
-$string['groupsubmission'] = 'Envio em grupo';
-
-$string['groupsubmission_help'] = 'Permite que grupos enviem juntos. Requer grupos configurados no curso.';
-
+$string['gradenotification_small'] = 'Nota publicada: {$a->activityname}';
+$string['gradenotification_subject'] = 'Sua nota está disponível: {$a->activityname}';
+$string['grading_header'] = 'Avaliação e fluxo de trabalho';
+$string['grading_workflow'] = 'Reter as notas para revisão do professor';
+$string['grading_workflow_help'] = 'Se ativado, a nota da IA é salva como rascunho: o estudante vê "aguardando revisão" e nada chega ao livro de notas até que um professor a publique, com ou sem alterações. Se desativado, a nota da IA é liberada automaticamente.';
+$string['integrity_flags'] = 'Possíveis problemas de integridade acadêmica apontados pela IA (verifique antes de agir):';
 $string['invalidsubmissionstatus'] = 'Esta ação não é permitida no estado atual do envio.';
+$string['license_banner_expired'] = 'O AI Viva não está disponível porque a licença expirou em {$a}. Entre em contato com o administrador.';
+$string['license_banner_invalid'] = 'O AI Viva não está disponível porque a chave de licença não corresponde a este site ({$a}). Entre em contato com o administrador.';
+$string['license_banner_missing'] = 'O AI Viva não está disponível porque o período de avaliação terminou e nenhuma chave de licença foi inserida para este site. Entre em contato com o administrador.';
+$string['license_banner_trial'] = 'O AI Viva está em modo de avaliação: restam {$a->days} dias (termina em {$a->expires}). Todos os recursos estão ativos. Para obter uma chave de licença, escreva para julio@rsmax.es.';
+$string['license_heading'] = 'Licença';
+$string['license_key'] = 'Chave de licença';
+$string['license_key_desc'] = 'Insira a chave de licença deste site. A chave é validada offline (não requer Internet) e está vinculada à URL deste site.
 
-$string['maxattempts']    = 'Número máximo de tentativas';
+Para obter uma chave de licença, ou para que ela seja reemitida caso a URL do seu site mude, escreva para <a href="mailto:julio@rsmax.es">julio@rsmax.es</a>.
 
-$string['maxattempts_help'] = 'Número máximo de vezes que um estudante pode tentar esta atividade. 0 = ilimitado.';
-
-$string['maximumgrade']     = 'Nota máxima';
-
-$string['model_economical']      = '(econômico)';
-
-$string['model_recommended']     = '(recomendado)';
-
-$string['modulename']        = 'AI Viva';
-
-$string['modulenameplural']  = 'AI Vivas';
-
-$string['no_overrides_yet']        = 'Nenhuma substituição foi configurada.';
-
-$string['no_submissions_yet']   = 'Ainda não há envios.';
-
-$string['noinstances']       = 'Nenhuma atividade AI Viva neste curso.';
-
-$string['notify_student']   = 'Notificar o estudante quando a nota for publicada';
-
-$string['openai_api_error']         = 'Erro do serviço de IA: {$a}';
-
-$string['openai_model_eval']     = 'Modelo de IA para avaliação final';
-
-$string['openai_model_pdf']      = 'Modelo de IA para análise de PDF';
-
+Se este campo for deixado em branco, o AI Viva funciona com todos os recursos durante um período de avaliação de {$a} dias a partir do primeiro uso. Quando esse período terminar, a atividade ficará desativada para os participantes até que uma chave válida seja inserida.';
+$string['license_status_expired'] = 'Expirada em {$a}';
+$string['license_status_invalid'] = 'Inválida — a chave não corresponde a este site';
+$string['license_status_trial'] = 'Período de avaliação — restam {$a->days} dias (termina em {$a->expires}). Escreva para julio@rsmax.es para obter uma chave de licença.';
+$string['license_status_trial_expired'] = 'O período de avaliação terminou — é necessária uma chave de licença. Escreva para julio@rsmax.es.';
+$string['license_status_valid'] = 'Válida — expira em {$a}';
+$string['license_status_valid_lifetime'] = 'Válida — licença vitalícia';
+$string['maxattempts'] = 'Número máximo de tentativas';
+$string['maxattempts_help'] = 'Quantas vezes um estudante pode concluir a atividade. Uma nova tentativa pode ser iniciada quando a anterior tiver sido avaliada e liberada. A melhor nota liberada é a enviada ao livro de notas.';
+$string['maximumgrade'] = 'Nota máxima';
+$string['member_thinking'] = '{$a} está pensando…';
+$string['messageprovider:gradenotification'] = 'Nota do AI Viva liberada';
+$string['messageprovider:submissionnotification'] = 'Envio do AI Viva aguardando revisão';
+$string['mic_test_btn'] = 'Testar meu microfone';
+$string['mic_test_hint'] = 'Teste o microfone antes de começar. Verifique se os alto-falantes ou fones estão ligados: os examinadores falarão com você.';
+$string['mic_test_ok'] = 'Microfone funcionando. Você pode começar quando estiver pronto.';
+$string['mic_test_waiting'] = 'Diga algo… a barra deve se mover quando você falar.';
+$string['model_economical'] = '(econômico)';
+$string['model_premium'] = '(máxima qualidade)';
+$string['model_recommended'] = '(recomendado)';
+$string['modulename'] = 'AI Viva';
+$string['modulenameplural'] = 'AI Vivas';
+$string['new_attempt_notice'] = 'Você pode fazer outra tentativa. Ela começa do início: um novo documento, uma nova apresentação e uma nova sessão da banca. Conta a sua melhor nota liberada.';
+$string['no_overrides_yet'] = 'Nenhuma substituição foi configurada.';
+$string['no_submissions_yet'] = 'Ainda não há envios.';
+$string['noinstances'] = 'Nenhuma atividade AI Viva neste curso.';
+$string['nothing_submitted'] = 'Nada foi enviado nesta etapa.';
+$string['notify_student'] = 'Notificar o estudante quando a nota for publicada';
+$string['openai_api_error'] = 'Erro do serviço de IA: {$a}';
+$string['openai_model_eval'] = 'Modelo de IA para avaliação final';
+$string['openai_model_pdf'] = 'Modelo de IA para análise de PDF';
 $string['openai_model_tribunal'] = 'Modelo de IA para a banca';
-
-$string['override_add']            = 'Adicionar substituição';
-
+$string['override_add'] = 'Adicionar substituição';
 $string['override_confirm_delete'] = 'Tem certeza de que deseja excluir esta substituição?';
-
-$string['override_delete']         = 'Excluir substituição';
-
-$string['override_deleted']        = 'Substituição excluída.';
-
-$string['override_edit']           = 'Editar substituição';
-
-$string['override_group']          = 'Grupo';
-
-$string['override_maxattempts']    = 'Número máximo de tentativas';
-
-$string['override_saved']          = 'Substituição salva.';
-
-$string['override_timeclose']      = 'Fechamento';
-
-$string['override_timeopen']       = 'Abertura';
-
-$string['override_type']           = 'Tipo de substituição';
-
-$string['override_type_group']     = 'Substituição de grupo';
-
-$string['override_type_user']      = 'Substituição de usuário';
-
-$string['override_user']           = 'Usuário';
-
-$string['overrides_heading']       = 'Substituições de usuário/grupo';
-
-$string['pdf_analysis_done']      = '✅ Análise concluída. Seu documento está pronto!';
-
-$string['pdf_dropzone_label']     = 'Arraste seu PDF aqui ou clique para selecionar';
-
-$string['pdf_selected']           = 'Selecionado: {$a->name} ({$a->size})';
-
+$string['override_deleted'] = 'Substituição excluída.';
+$string['override_edit'] = 'Editar substituição';
+$string['override_group'] = 'Grupo';
+$string['override_maxattempts'] = 'Número máximo de tentativas';
+$string['override_saved'] = 'Substituição salva.';
+$string['override_timeclose'] = 'Fechamento';
+$string['override_timeopen'] = 'Abertura';
+$string['override_type'] = 'Tipo de substituição';
+$string['override_type_group'] = 'Substituição de grupo';
+$string['override_type_user'] = 'Substituição de usuário';
+$string['override_user'] = 'Usuário';
+$string['overrides_heading'] = 'Substituições de usuário/grupo';
+$string['pdf_dropzone_label'] = 'Arraste seu PDF aqui ou clique para selecionar';
+$string['pdf_maxsize'] = '(PDF, até {$a} MB)';
+$string['pdf_selected'] = 'Selecionado: {$a->name} ({$a->size})';
+$string['pdf_selected_next'] = 'Arquivo pronto. Pressione «Enviar documento» para enviá-lo.';
 $string['pdf_uploaded_analysing'] = '✅ Documento recebido. A IA está analisando seu trabalho…';
-
 $string['pluginadministration'] = 'Administração do AI Viva';
-
-$string['pluginname']        = 'AI Viva';
-
-$string['privacy:metadata:aiviva_submissions']                     = 'Informações sobre cada envio do estudante.';
-
-$string['privacy:metadata:aiviva_submissions:final_feedback']      = 'O texto de feedback final fornecido ao estudante.';
-
-$string['privacy:metadata:aiviva_submissions:final_grade']         = 'A nota final atribuída ao estudante.';
-
-$string['privacy:metadata:aiviva_submissions:gdpr_consent']        = 'Se o estudante deu consentimento LGPD/GDPR.';
-
-$string['privacy:metadata:aiviva_submissions:gdpr_consent_time']   = 'Quando o estudante deu o consentimento.';
-
-$string['privacy:metadata:aiviva_submissions:pdf_analysis']        = 'Análise de IA do PDF do estudante.';
-
-$string['privacy:metadata:aiviva_submissions:status']              = 'Status atual do envio.';
-
-$string['privacy:metadata:aiviva_submissions:timecreated']         = 'Quando o envio foi criado.';
-
-$string['privacy:metadata:aiviva_submissions:timesubmitted']       = 'Quando o envio foi concluído.';
-
+$string['pluginname'] = 'AI Viva';
+$string['presentation_transcript'] = 'Transcrição da apresentação';
+$string['privacy:metadata:aiviva_overrides'] = 'Ajustes por usuário do limite de tentativas e das datas de disponibilidade.';
+$string['privacy:metadata:aiviva_overrides:max_attempts'] = 'O limite de tentativas ajustado.';
+$string['privacy:metadata:aiviva_overrides:timeclose'] = 'A data de encerramento ajustada.';
+$string['privacy:metadata:aiviva_overrides:timeopen'] = 'A data de abertura ajustada.';
+$string['privacy:metadata:aiviva_overrides:userid'] = 'O usuário ao qual o ajuste se aplica.';
+$string['privacy:metadata:aiviva_submissions'] = 'Informações sobre cada envio do estudante.';
+$string['privacy:metadata:aiviva_submissions:ai_grade'] = 'A nota proposta pela IA.';
+$string['privacy:metadata:aiviva_submissions:attempt'] = 'O número da tentativa.';
+$string['privacy:metadata:aiviva_submissions:final_feedback'] = 'O texto de feedback final fornecido ao estudante.';
+$string['privacy:metadata:aiviva_submissions:final_grade'] = 'A nota final atribuída ao estudante.';
+$string['privacy:metadata:aiviva_submissions:gdpr_consent'] = 'Se o estudante deu consentimento LGPD/GDPR.';
+$string['privacy:metadata:aiviva_submissions:gdpr_consent_time'] = 'Quando o estudante deu o consentimento.';
+$string['privacy:metadata:aiviva_submissions:grade_breakdown'] = 'A pontuação e os comentários da IA para cada etapa.';
+$string['privacy:metadata:aiviva_submissions:grader_userid'] = 'O professor que editou a nota ou os comentários.';
+$string['privacy:metadata:aiviva_submissions:pdf_analysis'] = 'Análise de IA do PDF do estudante.';
+$string['privacy:metadata:aiviva_submissions:status'] = 'Status atual do envio.';
+$string['privacy:metadata:aiviva_submissions:timecreated'] = 'Quando o envio foi criado.';
+$string['privacy:metadata:aiviva_submissions:timesubmitted'] = 'Quando o envio foi concluído.';
+$string['privacy:metadata:aiviva_submissions:tribunal_analysis'] = 'A avaliação completa da tentativa feita pela IA.';
+$string['privacy:metadata:aiviva_submissions:tribunal_briefing'] = 'O resumo sobre o trabalho do estudante preparado pela IA para a banca.';
 $string['privacy:metadata:aiviva_submissions:tribunal_transcript'] = 'Transcrição completa da sessão da banca.';
-
-$string['privacy:metadata:aiviva_submissions:userid']              = 'ID do estudante que fez o envio.';
-
-$string['privacy:metadata:aiviva_submissions:video_analysis']      = 'Análise de IA da apresentação em vídeo.';
-
-$string['privacy:metadata:aiviva_submissions:video_transcript']    = 'Transcrição Whisper da apresentação em vídeo.';
-
-$string['privacy:metadata:aiviva_tribunal_messages']               = 'Registro detalhado de cada turno na sessão da banca.';
-
-$string['privacy:metadata:aiviva_tribunal_messages:message_text']  = 'O texto do que foi dito.';
-
-$string['privacy:metadata:aiviva_tribunal_messages:speaker']       = 'Quem falou neste turno.';
-
-$string['privacy:metadata:aiviva_tribunal_messages:timestamp']     = 'Quando este turno ocorreu.';
-
-$string['privacy:metadata:core_files']                            = 'Envios em PDF, gravações de tela e respostas de áudio do tribunal são armazenados no sistema de arquivos do Moodle.';
-
-$string['privacy:metadata:openai']                                 = 'O conteúdo é enviado à API da OpenAI para análise. Os nomes dos estudantes são anonimizados antes do envio.';
-
-$string['privacy:metadata:openai:anonymised_content']              = 'Conteúdo do documento ou apresentação com o nome do estudante anonimizado.';
-
-$string['privacy:metadata:openai:audio_transcript']                = 'Transcrição do áudio falado pelo estudante.';
-
-$string['privacy:metadata:openai:conversation_turns']              = 'Texto das respostas faladas do estudante durante a banca.';
-
-$string['privacy:metadata:openai:video_frames']                    = 'Quadros extraídos da gravação de tela do estudante.';
-
-$string['publish_grade']        = 'Publicar nota';
-
-$string['push_to_talk']           = 'Segure para responder';
-
-$string['rate_limit_exceeded']      = 'Você fez muitas requisições. Por favor, aguarde um momento.';
-
-$string['recording_started']      = '🔴 Gravando — comece sua apresentação!';
-
-$string['recording_time_up']      = '⏱ Tempo esgotado. Salvando sua apresentação…';
-
-$string['regen_all']        = 'Re-analisar tudo';
-
-$string['regen_confirm']    = 'Isso substituirá a análise atual por uma nova. Pode levar vários minutos. Continuar?';
-
-$string['regen_cooldown']          = 'Por favor, aguarde antes de regenerar novamente. Esta operação tem um período de espera para evitar uso excessivo da API.';
-
+$string['privacy:metadata:aiviva_submissions:userid'] = 'ID do estudante que fez o envio.';
+$string['privacy:metadata:aiviva_submissions:video_analysis'] = 'Análise de IA da apresentação em vídeo.';
+$string['privacy:metadata:aiviva_submissions:video_transcript'] = 'Transcrição automática da apresentação do estudante.';
+$string['privacy:metadata:aiviva_tribunal_messages'] = 'Registro detalhado de cada turno na sessão da banca.';
+$string['privacy:metadata:aiviva_tribunal_messages:message_text'] = 'O texto do que foi dito.';
+$string['privacy:metadata:aiviva_tribunal_messages:speaker'] = 'Quem falou neste turno.';
+$string['privacy:metadata:aiviva_tribunal_messages:timestamp'] = 'Quando este turno ocorreu.';
+$string['privacy:metadata:core_files'] = 'Envios em PDF, gravações de tela e respostas de áudio do tribunal são armazenados no sistema de arquivos do Moodle.';
+$string['privacy:metadata:openai'] = 'Para analisar e avaliar uma tentativa, o conteúdo do estudante é enviado à API da OpenAI. O nome no Moodle e o e-mail do estudante não são enviados, mas o próprio conteúdo (documento, voz, tela) pode identificá-lo. A OpenAI trata os dados conforme os seus termos de uso de dados da API.';
+$string['privacy:metadata:openai:audio'] = 'O áudio da apresentação do estudante e de cada resposta falada à banca, enviado para transcrição.';
+$string['privacy:metadata:openai:conversation_turns'] = 'As transcrições da apresentação e da conversa com a banca.';
+$string['privacy:metadata:openai:document'] = 'O documento PDF completo enviado pelo estudante, incluindo quaisquer dados pessoais nele contidos.';
+$string['privacy:metadata:openai:pseudonym'] = 'Um código pseudônimo derivado do identificador do usuário, usado no lugar do nome do estudante.';
+$string['privacy:metadata:openai:video_frames'] = 'Capturas da tela do estudante feitas durante a apresentação, enviadas para análise visual.';
+$string['publish_grade'] = 'Publicar nota';
+$string['rate_limit_exceeded'] = 'Você fez muitas requisições. Por favor, aguarde um momento.';
+$string['recording_indicator'] = 'REC';
+$string['recording_instructions'] = 'Será solicitado o microfone e, em seguida, a tela ou janela a compartilhar. A gravação começa após uma breve contagem regressiva e dura até {$a} minutos. Você poderá rever a gravação antes de enviá-la e gravar novamente se não ficar satisfeito.';
+$string['recording_review'] = 'Reveja a sua gravação e, em seguida, envie-a ou grave novamente.';
+$string['recording_size'] = 'Tamanho: {$a} MB';
+$string['recording_started'] = '🔴 Gravando — comece sua apresentação!';
+$string['recording_time_up'] = '⏱ Tempo esgotado. Salvando sua apresentação…';
+$string['regen_all'] = 'Re-analisar tudo';
+$string['regen_confirm'] = 'O novo resultado da IA substituirá o atual. Pode levar vários minutos. A nota ou os comentários editados por um professor são mantidos; o estudante não é notificado.';
+$string['regen_confirm_btn'] = 'Regenerar';
+$string['regen_cooldown'] = 'Por favor, aguarde antes de regenerar novamente. Esta operação tem um período de espera para evitar uso excessivo da API.';
 $string['regen_evaluation'] = 'Recalcular avaliação final';
-
-$string['regen_heading']    = 'Regenerar análise IA';
-
-$string['regen_pdf']        = 'Re-analisar PDF (Passo 1)';
-
-$string['regen_running']    = 'Processando… aguarde (pode levar 1–3 minutos)';
-
-$string['regen_success']    = 'Concluído! Recarregando…';
-
-$string['regen_video']      = 'Re-analisar vídeo (Passo 2)';
-
-$string['results_title']         = 'Seus resultados';
-
-$string['retry_recording']        = 'Gravar novamente';
-
-$string['return_to_student']    = 'Devolver para revisão';
-
+$string['regen_explanation'] = 'Execute a IA novamente nesta tentativa, por exemplo após alterar os prompts ou o modelo. Todas as opções terminam repetindo a avaliação final.';
+$string['regen_heading'] = 'Regenerar análise IA';
+$string['regen_pdf'] = 'Re-analisar PDF (Passo 1)';
+$string['regen_running'] = 'Processando… aguarde (pode levar 1–3 minutos)';
+$string['regen_success'] = 'Concluído! Recarregando…';
+$string['regen_video'] = 'Re-analisar vídeo (Passo 2)';
+$string['results_title'] = 'Seus resultados';
+$string['retry_recording'] = 'Gravar novamente';
 $string['safety_extra_prompt'] = 'Restrições de conteúdo adicionais (opcional)';
-
-$string['security_header']     = 'Segurança da atividade';
-
-$string['settings_advanced_heading']         = 'Avançado';
-
-$string['settings_anonymize_desc']           = 'Os nomes reais dos estudantes são <strong>sempre</strong> substituídos por um hash SHA-256 antes de serem enviados à OpenAI.';
-
-$string['settings_anonymize_heading']        = 'Anonimização de estudantes';
-
-$string['settings_anonymize_salt']           = 'Salt de anonimização';
-
-$string['settings_anonymize_salt_desc']      = 'String aleatória adicionada ao hash para maior segurança.';
-
-$string['settings_api_rate_limit']           = 'Máximo de chamadas de API por usuário por minuto';
-
-$string['settings_api_rate_limit_desc']      = 'Limite de taxa por usuário do Moodle.';
-
-$string['settings_api_timeout']              = 'Tempo limite de requisição da API (segundos)';
-
-$string['settings_api_timeout_desc']         = 'Tempo máximo para aguardar uma resposta da OpenAI.';
-
-$string['settings_apikeys_heading']          = 'Chaves de API da OpenAI';
-
-$string['settings_apikeys_heading_desc']     = 'Estas chaves são armazenadas de forma criptografada.';
-
-$string['settings_cost_estimate_desc']       = 'Custo estimado por sessão completa de estudante:<br/>GPT-4o: ~$0,15–$0,40 USD | GPT-4o mini: ~$0,03–$0,08 USD';
-
-$string['settings_cost_estimate_heading']    = 'Estimativas de custo';
-
-$string['settings_disk_warning_threshold']   = 'Limite de aviso de espaço em disco (GB)';
-
-$string['settings_disk_warning_threshold_desc'] = 'Exibir aviso de administrador quando o espaço livre cair abaixo deste valor.';
-
-$string['settings_enable_gpt4o']             = 'Habilitar GPT-4o';
-
-$string['settings_enable_gpt4o_desc']        = 'GPT-4o — maior qualidade, maior custo.';
-
-$string['settings_enable_gpt4o_mini']        = 'Habilitar GPT-4o mini';
-
-$string['settings_enable_gpt4o_mini_desc']   = 'GPT-4o mini — boa qualidade, menor custo.';
-
-$string['settings_ffmpeg_path']              = 'Caminho do binário FFmpeg';
-
-$string['settings_ffmpeg_path_desc']         = 'Caminho absoluto para o binário FFmpeg (ex.: /usr/bin/ffmpeg). Deixe em branco para usar apenas frames do cliente. Deve ser caminho absoluto — caminhos relativos são rejeitados por segurança.';
-
-$string['settings_gdpr_heading']             = 'Aviso de privacidade (LGPD/GDPR)';
-
-$string['settings_gdpr_heading_desc']        = 'Este aviso é exibido aos estudantes antes de começar. Eles devem aceitá-lo para prosseguir.';
-
-$string['settings_gdpr_notice_text']         = 'Texto do aviso de privacidade';
-
-$string['settings_gdpr_notice_text_desc']    = 'Texto HTML exibido aos estudantes.';
-
-$string['settings_global_max_video_size']    = 'Tamanho máximo global de vídeo (MB)';
-
+$string['safety_extra_prompt_help'] = 'Regras adicionais acrescentadas a todos os prompts desta atividade: análise do documento, análise da apresentação, cada examinador da banca e a avaliação final. Por exemplo: "Nunca comente o sotaque do candidato."';
+$string['security_header'] = 'Segurança da atividade';
+$string['settings_advanced_heading'] = 'Avançado';
+$string['settings_anonymize_desc'] = 'O nome no Moodle e o e-mail do estudante nunca são enviados à OpenAI; os prompts identificam o estudante por um código pseudônimo gerado com uma chave secreta deste site. O documento, a voz e o conteúdo da tela são enviados como o estudante os produziu e podem identificá-lo.';
+$string['settings_anonymize_heading'] = 'Identificação do estudante';
+$string['settings_api_rate_limit'] = 'Máximo de chamadas de API por usuário por minuto';
+$string['settings_api_rate_limit_desc'] = 'Máximo de chamadas à IA por minuto para um estudante durante a banca (cada resposta usa cerca de três). Evita o abuso da API.';
+$string['settings_api_timeout'] = 'Tempo limite de requisição da API (segundos)';
+$string['settings_api_timeout_desc'] = 'Tempo máximo para aguardar uma resposta da OpenAI.';
+$string['settings_apikeys_heading'] = 'Chaves de API da OpenAI';
+$string['settings_apikeys_heading_desc'] = 'Estas chaves são armazenadas de forma criptografada.';
+$string['settings_cost_estimate_desc'] = 'Preços de tabela da OpenAI por milhão de tokens de entrada / saída (consulte openai.com para os preços atuais):<br/>GPT-6.1 Sol: $2 / $10 | GPT-6 Astra: $10 / $50 | GPT-6 Luna: $0,10 / $0,50<br/>Transcrição (gpt-transcribe): ~$0,0045 por minuto de áudio. As vozes da banca (gpt-4o-mini-tts) são cobradas à parte.';
+$string['settings_cost_estimate_heading'] = 'Estimativas de custo';
+$string['settings_enabled_models'] = 'Modelos disponíveis para os professores';
+$string['settings_enabled_models_desc'] = 'Modelos que os professores podem escolher em cada atividade. O GPT-6.1 Sol equilibra qualidade e custo, o GPT-6 Astra é o mais capaz e o mais caro, e o GPT-6 Luna é o mais econômico. Se nenhum for marcado, todos são oferecidos.';
+$string['settings_gdpr_heading'] = 'Aviso de privacidade (LGPD/GDPR)';
+$string['settings_gdpr_heading_desc'] = 'Este aviso é exibido aos estudantes antes de começar. Eles devem aceitá-lo para prosseguir.';
+$string['settings_gdpr_notice_text'] = 'Texto do aviso de privacidade';
+$string['settings_gdpr_notice_text_desc'] = 'Deixe vazio para exibir o aviso integrado no idioma do estudante. Se escrever o seu próprio (HTML permitido; exibido em todos os idiomas), ele deve indicar o que é enviado à OpenAI. O período de retenção de cada atividade é acrescentado automaticamente.';
+$string['settings_global_max_video_size'] = 'Tamanho máximo global de vídeo (MB)';
 $string['settings_global_max_video_size_desc'] = 'Atividades individuais não podem exceder este limite.';
-
-$string['settings_models_heading']           = 'Modelos de IA disponíveis';
-
-$string['settings_models_heading_desc']      = 'Selecione quais modelos os professores podem escolher.';
-
-$string['settings_openai_apikey']            = 'Chave de API principal da OpenAI';
-
-$string['settings_openai_apikey_desc']       = 'Sua chave de API da OpenAI.';
-
-$string['settings_openai_apikey_secondary']  = 'Chave de API secundária da OpenAI (opcional)';
-
-$string['settings_openai_apikey_secondary_desc'] = 'Se configurada, as chamadas ao Whisper e TTS usarão esta chave.';
-
-$string['settings_safety_content_filter']    = 'Ativar moderação de conteúdo da OpenAI';
-
+$string['settings_models_heading'] = 'Modelos de IA disponíveis';
+$string['settings_models_heading_desc'] = 'Selecione quais modelos os professores podem escolher.';
+$string['settings_openai_apikey'] = 'Chave de API principal da OpenAI';
+$string['settings_openai_apikey_desc'] = 'Sua chave de API da OpenAI.';
+$string['settings_openai_apikey_secondary'] = 'Chave de API secundária da OpenAI (opcional)';
+$string['settings_openai_apikey_secondary_desc'] = 'Se configurada, as chamadas de transcrição e TTS usarão esta chave.';
+$string['settings_safety_content_filter'] = 'Ativar moderação de conteúdo da OpenAI';
 $string['settings_safety_content_filter_desc'] = 'Passa todo o conteúdo do usuário pela API de Moderação da OpenAI antes de enviar ao GPT.';
-
-$string['settings_safety_max_tokens']        = 'Máximo de tokens por chamada de API';
-
-$string['settings_safety_max_tokens_desc']   = 'Limite de tokens de saída para todas as chamadas.';
-
-$string['settings_security_heading']         = 'Segurança';
-
-$string['settings_security_heading_desc']    = 'Filtros de segurança aplicados a todas as chamadas de IA.';
-
-$string['settings_servertools_heading']       = 'Ferramentas do servidor';
-
-$string['settings_servertools_heading_desc']  = 'Binários opcionais do servidor para melhorar o processamento de vídeo.';
-
-$string['settings_storage_heading']          = 'Armazenamento e retenção';
-
-$string['settings_storage_heading_desc']     = 'Configure os limites de armazenamento e a limpeza automática.';
-
-$string['settings_video_purge_days']         = 'Período padrão de retenção de vídeo (dias)';
-
-$string['settings_video_purge_days_desc']    = 'Vídeos e áudios mais antigos são excluídos automaticamente. 0 = desativado.';
-
-$string['start_activity']  = 'Estou pronto para começar';
-
-$string['start_recording']        = 'Iniciar gravação de tela';
-
+$string['settings_safety_max_tokens'] = 'Máximo de tokens por chamada de API';
+$string['settings_safety_max_tokens_desc'] = 'Limite superior do tamanho de cada resposta da IA, em tokens. Não limita quanto do trabalho do estudante a IA lê: documentos e transcrições são sempre enviados por completo.';
+$string['settings_security_heading'] = 'Segurança';
+$string['settings_security_heading_desc'] = 'Filtros de segurança aplicados a todas as chamadas de IA.';
+$string['settings_storage_heading'] = 'Armazenamento e retenção';
+$string['settings_storage_heading_desc'] = 'Configure os limites de armazenamento e a limpeza automática.';
+$string['settings_video_purge_days'] = 'Retenção padrão de gravações (dias)';
+$string['settings_video_purge_days_desc'] = 'Valor padrão para novas atividades; cada atividade define o seu.';
+$string['start_activity'] = 'Estou pronto para começar';
+$string['start_new_attempt'] = 'Iniciar uma nova tentativa';
+$string['start_recording'] = 'Iniciar gravação de tela';
+$string['status_draft'] = 'Não iniciada';
+$string['status_graded'] = 'Avaliada';
+$string['status_grading'] = 'Em avaliação';
+$string['status_step1'] = 'Analisando documento';
+$string['status_step2'] = 'Etapa de apresentação';
+$string['status_step3'] = 'Etapa da banca';
+$string['status_submitted'] = 'Aguardando avaliação';
 $string['step1_description'] = 'Instruções para o estudante';
-
-$string['step1_header']      = 'Etapa 1 — Documento PDF';
-
-$string['step1_prompt']      = 'Prompt de análise por IA';
-
+$string['step1_description_help'] = 'Descreva qual documento PDF o aluno deve enviar.';
+$string['step1_header'] = 'Etapa 1 — Documento PDF';
+$string['step1_maxfilesize'] = 'Tamanho máximo do PDF (MB)';
+$string['step1_maxfilesize_help'] = 'Tamanho máximo do PDF que um estudante pode enviar. O documento inteiro é enviado à IA, portanto arquivos muito grandes custam mais e demoram mais.';
+$string['step1_prompt'] = 'Prompt de análise por IA';
 $string['step1_prompt_help'] = 'Instrução enviada à IA para analisar o PDF do estudante. O nome é anonimizado automaticamente.';
-
-$string['step1_title']       = 'Documento PDF';
-
+$string['step1_title'] = 'Documento PDF';
 $string['step2_description'] = 'Instruções para o estudante';
-
-$string['step2_duration']    = 'Duração máxima da apresentação';
-
-$string['step2_header']      = 'Etapa 2 — Apresentação em Vídeo';
-
+$string['step2_description_help'] = 'Descreva o que o aluno deve apresentar na gravação de tela.';
+$string['step2_duration'] = 'Duração máxima da apresentação';
+$string['step2_header'] = 'Etapa 2 — Apresentação em Vídeo';
 $string['step2_maxfilesize'] = 'Tamanho máximo do arquivo de vídeo (MB)';
-
-$string['step2_prompt']      = 'Prompt de análise de vídeo por IA';
-
-$string['step2_title']       = 'Apresentação em Vídeo';
-
-$string['step3_duration']    = 'Duração da sessão da banca (minutos)';
-
-$string['step3_header']      = 'Etapa 3 — Banca Examinadora';
-
+$string['step2_maxfilesize_help'] = 'Não pode exceder o máximo global configurado pelo administrador do site.';
+$string['step2_prompt'] = 'Prompt de análise de vídeo por IA';
+$string['step2_prompt_help'] = 'Instrução enviada à IA para analisar a apresentação em vídeo (quadros e transcrição).';
+$string['step2_title'] = 'Apresentação em Vídeo';
+$string['step3_duration'] = 'Duração da sessão da banca (minutos)';
+$string['step3_header'] = 'Etapa 3 — Banca Examinadora';
 $string['step3_prompt_eval'] = 'Prompt de avaliação final';
+$string['step3_prompt_eval_help'] = 'Instruções para que a IA gere a nota final e o feedback.';
+$string['step3_title'] = 'Banca Examinadora';
+$string['stop_recording'] = 'Finalizar apresentação';
+$string['submission_deleted'] = 'Envio excluído.';
+$string['submissionnotification_body'] = 'O(a) estudante ({$a->studentname}) concluiu \'{$a->activityname}\' em \'{$a->coursename}\' e o envio está pronto para revisão.
 
-$string['step3_title']       = 'Banca Examinadora';
-
-$string['stop_recording']         = 'Finalizar apresentação';
-
-$string['submission']            = 'Envio';
-
-$string['submission_deleted']        = 'Envio excluído.';
-
-$string['submissionnotification_body']    = <<<'EOT'
-O(a) estudante ({$a->studentname}) concluiu '{$a->activityname}' em '{$a->coursename}' e o envio está pronto para revisão.
-
-Ver envios: {$a->link}
-EOT;
-
+Ver envios: {$a->link}';
 $string['submissionnotification_bodyhtml'] = '<p>O(a) estudante <strong>{$a->studentname}</strong> concluiu <em>{$a->activityname}</em> e o envio está pronto para revisão.</p><p><a href="{$a->link}">Ver envios</a></p>';
-
-$string['submissionnotification_small']   = 'Novo envio: {$a->activityname}';
-
+$string['submissionnotification_small'] = 'Novo envio: {$a->activityname}';
 $string['submissionnotification_subject'] = 'Novo envio para revisão: {$a->activityname}';
-
-$string['submissions_heading']  = 'Envios';
-
-$string['submit_video']           = 'Enviar apresentação';
-
-$string['task_analyze_pdf']          = 'AI Viva: Analisar PDF enviado';
-
-$string['task_analyze_video']        = 'AI Viva: Analisar apresentação em vídeo';
-
-$string['task_evaluate_submission']  = 'AI Viva: Gerar avaliação final';
-
-$string['task_purge_old_files']      = 'AI Viva: Remover arquivos de vídeo/áudio antigos';
-
-$string['tribunal_ending']        = 'A sessão está encerrando…';
-
-$string['tribunal_finished']      = 'Sessão encerrada. Preparando sua avaliação…';
-
-$string['tribunal_loading']       = 'Conectando à banca examinadora…';
-
-$string['tribunal_log']          = 'Registro da banca';
-
-$string['tribunal_member_avatar']        = 'Avatar';
-
+$string['submissions_heading'] = 'Envios';
+$string['submit_video'] = 'Enviar apresentação';
+$string['task_analyze_pdf'] = 'AI Viva: Analisar PDF enviado';
+$string['task_analyze_video'] = 'AI Viva: Analisar apresentação em vídeo';
+$string['task_close_abandoned_tribunals'] = 'Encerrar sessões de banca abandonadas';
+$string['task_evaluate_submission'] = 'AI Viva: Gerar avaliação final';
+$string['task_purge_old_files'] = 'AI Viva: Remover arquivos de vídeo/áudio antigos';
+$string['timeclose'] = 'Encerramento';
+$string['timeopen'] = 'Abertura';
+$string['timeopen_help'] = 'Os estudantes só podem iniciar e trabalhar em uma tentativa entre estas datas. Uma sessão da banca já em andamento quando a atividade se encerra pode ser concluída. As exceções podem alterar as datas para um usuário ou um grupo.';
+$string['tribunal_ending'] = 'A sessão está encerrando…';
+$string['tribunal_finished'] = 'A sessão terminou. Sua avaliação está sendo preparada; esta página será atualizada sozinha.';
+$string['tribunal_leave_warning'] = 'A sessão da banca está em andamento e o relógio não vai parar se você sair.';
+$string['tribunal_loading'] = 'Conectando à banca examinadora…';
+$string['tribunal_log'] = 'Registro da banca';
+$string['tribunal_member_avatar'] = 'Avatar';
 $string['tribunal_member_avatar_custom'] = 'Enviar imagem de avatar personalizada';
-
-$string['tribunal_member_header']        = 'Membro da banca {$a}';
-
-$string['tribunal_member_name']          = 'Nome';
-
-$string['tribunal_member_prompt']        = 'Personalidade e estilo de interrogação';
-
-$string['tribunal_member_role']          = 'Papel / Cargo';
-
-$string['tribunal_member_voice']         = 'Voz TTS';
-
-$string['tribunal_ready_notice']  = 'Você está prestes a iniciar sua sessão de defesa oral. Ao pressionar o botão, o cronômetro começará e a banca iniciará as perguntas. Não será possível voltar ou pausar a sessão.';
-
-$string['tribunal_ready_title']   = 'Sala de Defesa — Pronto para começar?';
-
-$string['tribunal_room_title']    = 'Sala de Defesa — {$a}';
-
-$string['tribunal_start_btn']     = 'Iniciar sessão da banca';
-
-$string['tribunal_thinking']      = 'A banca está deliberando…';
-
-$string['unlimited']      = 'Ilimitado';
-
-$string['upload_pdf']             = 'Enviar documento';
-
-$string['uploading_video']        = 'Enviando sua gravação…';
-
-$string['video_analysis_done']    = '✅ Apresentação analisada. Pronta para a banca!';
-
+$string['tribunal_member_header'] = 'Membro da banca {$a}';
+$string['tribunal_member_name'] = 'Nome';
+$string['tribunal_member_prompt'] = 'Personalidade e estilo de interrogação';
+$string['tribunal_member_prompt_help'] = 'Descreva como este examinador conduz as perguntas: tom, especialidade e nível de rigor.';
+$string['tribunal_member_role'] = 'Papel / Cargo';
+$string['tribunal_member_voice'] = 'Voz TTS';
+$string['tribunal_member_voice_help'] = 'A voz usada para ler em voz alta as perguntas deste examinador.';
+$string['tribunal_ready_notice'] = 'Você vai começar a sua defesa oral. Ao pressionar Iniciar, começa um relógio de {$a} minutos que não pode ser pausado, mesmo que você feche esta página. Os examinadores falarão; para responder, pressione o botão, fale e pressione novamente para enviar.';
+$string['tribunal_ready_title'] = 'Sala de Defesa — Pronto para começar?';
+$string['tribunal_resume_btn'] = 'Retomar a sessão';
+$string['tribunal_resume_notice'] = 'Sua sessão da banca já está em andamento e o relógio continuou correndo. Teste o microfone e retome de onde parou.';
+$string['tribunal_room_title'] = 'Sala de Defesa — {$a}';
+$string['tribunal_start_btn'] = 'Iniciar sessão da banca';
+$string['unlimited'] = 'Ilimitado';
+$string['unpublish_grade'] = 'Retirar nota';
+$string['upload_pdf'] = 'Enviar documento';
+$string['uploading_video'] = 'Enviando sua gravação…';
+$string['video_purge_days'] = 'Manter as gravações por (dias)';
+$string['video_purge_days_help'] = 'As gravações de tela, o áudio e as capturas são excluídos esta quantidade de dias após uma tentativa ser avaliada e liberada (ou após a última atividade de uma tentativa inacabada). O PDF, as transcrições e as notas são mantidos. Informe 0 para manter as gravações indefinidamente.';
+$string['video_purged'] = 'A gravação foi excluída automaticamente ao fim do seu período de retenção.';
 $string['video_uploaded_analysing'] = '✅ Gravação enviada. Analisando sua apresentação…';
-
-$string['voice_alloy']   = 'Alloy — versátil, neutro';
-
-$string['voice_echo']    = 'Echo — ressonante, masculino';
-
-$string['voice_fable']   = 'Fable — expressivo, sotaque britânico';
-
-$string['voice_nova']    = 'Nova — caloroso, feminino';
-
-$string['voice_onyx']    = 'Onyx — grave, autoritário';
-
+$string['view_submissions'] = 'Ver envios';
+$string['voice_alloy'] = 'Alloy — versátil, neutro';
+$string['voice_ash'] = 'Ash';
+$string['voice_ballad'] = 'Ballad';
+$string['voice_cedar'] = 'Cedar';
+$string['voice_coral'] = 'Coral';
+$string['voice_echo'] = 'Echo — ressonante, masculino';
+$string['voice_fable'] = 'Fable — expressivo, sotaque britânico';
+$string['voice_marin'] = 'Marin';
+$string['voice_nova'] = 'Nova — caloroso, feminino';
+$string['voice_onyx'] = 'Onyx — grave, autoritário';
+$string['voice_sage'] = 'Sage';
 $string['voice_shimmer'] = 'Shimmer — suave, claro';
-
-$string['warning_1min']           = '⚠️ Falta 1 minuto';
-
-$string['warning_2min']           = '⚠️ Faltam 2 minutos';
-
-$string['workflow_inreview']    = 'Em revisão';
-
-$string['workflow_readyforrelease'] = 'Pronto para publicar';
-
-$string['workflow_released']    = 'Publicado';
-
-$string['your_grade']            = 'Sua nota:';
+$string['voice_verse'] = 'Verse';
+$string['waiting_hint'] = 'Esta página é atualizada sozinha. Não é preciso recarregá-la.';
+$string['waiting_slow'] = 'Está demorando mais do que o normal. Você pode sair desta página e voltar mais tarde; seu trabalho está salvo.';
+$string['warning_1min'] = '⚠️ Falta 1 minuto';
+$string['warning_2min'] = '⚠️ Faltam 2 minutos';
+$string['weight_pdf'] = 'Peso do documento (%)';
+$string['weight_pdf_help'] = 'A IA pontua separadamente o documento, a apresentação e a banca de 0 a 100. A nota final é a média ponderada com estas três porcentagens, que devem somar 100.';
+$string['weight_tribunal'] = 'Peso da banca (%)';
+$string['weight_video'] = 'Peso da apresentação (%)';
+$string['workflow_inreview'] = 'Em revisão';
+$string['workflow_released'] = 'Publicado';
+$string['you'] = 'Você';
+$string['your_grade'] = 'Sua nota:';

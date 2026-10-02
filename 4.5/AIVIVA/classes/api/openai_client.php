@@ -18,7 +18,7 @@
  * Centralised OpenAI API client for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -45,6 +45,12 @@ class openai_client {
     /** @var int Maximum retry attempts. */
     private const MAX_RETRIES = 3;
 
+    /** @var string Reasoning effort sent with every generation request (lowest level the models accept). */
+    private const REASONING_EFFORT = 'low';
+
+    /** @var int Extra output tokens allowed on top of the visible answer, for the model's reasoning. */
+    private const REASONING_TOKEN_RESERVE = 2048;
+
     /** @var string Primary API key (decrypted). */
     private string $apikey;
 
@@ -67,6 +73,13 @@ class openai_client {
      * Private constructor — use {@see self::get_instance()}.
      */
     private function __construct() {
+        // License backstop: no AI call may proceed without a valid key bound to
+        // this site, guaranteeing the block holds on every call path (including
+        // background tasks) even if an entry-point check is ever bypassed.
+        if (!\mod_aiviva\license\validator::is_valid()) {
+            throw new \moodle_exception('error_nolicense', 'mod_aiviva');
+        }
+
         $config = get_config('mod_aiviva');
 
         // Decrypt primary key.
@@ -77,10 +90,10 @@ class openai_client {
         $encryptedsecondary = $config->openai_apikey_secondary ?? '';
         $this->apikeysecondary = $encryptedsecondary ? $this->decrypt_key($encryptedsecondary) : null;
 
-        $this->timeout       = max(30, (int)($config->api_timeout ?? 120));
-        $this->maxtokens     = max(256, (int)($config->safety_max_tokens ?? 4096));
+        $this->timeout       = max(30, (int)($config->api_timeout ?? 300));
+        $this->maxtokens     = max(256, (int)($config->safety_max_tokens ?? 16000));
         $this->contentfilter = !empty($config->safety_content_filter);
-        $this->ratelimit     = max(1, (int)($config->api_rate_limit ?? 10));
+        $this->ratelimit     = max(1, (int)($config->api_rate_limit ?? 30));
     }
 
     /**
@@ -109,7 +122,12 @@ class openai_client {
      * @throws \moodle_exception on API error.
      */
     public function responses_completion(array $input, string $model, string $instructions = '', array $options = []): array {
-        $body = array_merge(['model' => $model, 'input' => $input], $options);
+        $body = array_merge([
+            'model'             => $model,
+            'input'             => $input,
+            'max_output_tokens' => $this->maxtokens + self::REASONING_TOKEN_RESERVE,
+            'reasoning'         => ['effort' => self::REASONING_EFFORT],
+        ], $options);
         if ($instructions !== '') {
             $body['instructions'] = $instructions;
         }
@@ -117,33 +135,73 @@ class openai_client {
     }
 
     /**
+     * Extracts the generated text from a Responses API result.
+     *
+     * Reasoning models return a "reasoning" item before the "message" item, so
+     * the text cannot be assumed to live in the first output element.
+     *
+     * @param array $response Decoded Responses API result.
+     * @return string Concatenated output text ('' if the model produced none).
+     */
+    public static function responses_output_text(array $response): string {
+        $text = '';
+        foreach ($response['output'] ?? [] as $item) {
+            if (($item['type'] ?? '') !== 'message') {
+                continue;
+            }
+            foreach ($item['content'] ?? [] as $part) {
+                if (($part['type'] ?? '') === 'output_text') {
+                    $text .= $part['text'] ?? '';
+                }
+            }
+        }
+        return $text;
+    }
+
+    /**
      * Sends a chat completion request.
      *
      * @param array  $messages   Array of role/content pairs.
-     * @param string $model      Model ID (e.g. 'gpt-4o').
+     * @param string $model      Model ID (e.g. 'gpt-6.1-sol').
      * @param array  $options    Extra parameters (temperature, response_format, etc.).
      * @param int    $userid     Moodle user id for rate limiting.
+     * @param bool   $moderate   Whether to run the content filter on the user messages first. Pass
+     *                           false when the caller has already filtered the only new text.
      * @return array Decoded response array.
      * @throws \moodle_exception on API error or rate limit exceeded.
      */
-    public function chat_completion(array $messages, string $model, array $options = [], int $userid = 0): array {
+    public function chat_completion(
+        array $messages,
+        string $model,
+        array $options = [],
+        int $userid = 0,
+        bool $moderate = true
+    ): array {
         $this->check_rate_limit($userid);
 
-        if ($this->contentfilter) {
+        if ($moderate && $this->contentfilter) {
             $this->moderate_messages($messages);
         }
 
+        // Callers still pass the historical 'max_tokens' name; current models only
+        // accept 'max_completion_tokens', which also has to cover reasoning tokens.
+        if (isset($options['max_tokens'])) {
+            $options['max_completion_tokens'] = (int)$options['max_tokens'] + self::REASONING_TOKEN_RESERVE;
+            unset($options['max_tokens']);
+        }
+
         $body = array_merge([
-            'model'      => $model,
-            'messages'   => $messages,
-            'max_tokens' => $this->maxtokens,
+            'model'                 => $model,
+            'messages'              => $messages,
+            'max_completion_tokens' => $this->maxtokens + self::REASONING_TOKEN_RESERVE,
+            'reasoning_effort'      => self::REASONING_EFFORT,
         ], $options);
 
         return $this->request('POST', '/chat/completions', $body);
     }
 
     /**
-     * Transcribes audio using Whisper.
+     * Transcribes audio with the speech-to-text model.
      *
      * @param string $filepath Absolute path to audio file.
      * @param string $language ISO-639-1 language code (optional).
@@ -155,7 +213,7 @@ class openai_client {
         $this->check_rate_limit($userid);
 
         $curlfile = new \CURLFile($filepath, mime_content_type($filepath), basename($filepath));
-        $data     = ['model' => 'whisper-1', 'file' => $curlfile];
+        $data     = ['model' => \mod_aiviva\form\mod_form_helper::TRANSCRIPTION_MODEL, 'file' => $curlfile];
         if ($language) {
             $data['language'] = $language;
         }
@@ -165,24 +223,68 @@ class openai_client {
     }
 
     /**
-     * Generates TTS audio via the OpenAI TTS endpoint.
+     * Streams TTS audio (MP3) straight to the browser as it is produced.
+     *
+     * The first audio arrives in under a second instead of after the whole clip
+     * has been synthesised, which is what makes a spoken conversation feel live.
+     * Nothing is sent to the browser unless the API answers with audio, so the
+     * caller can still report an error when this returns false.
      *
      * @param string $text   Text to synthesise.
-     * @param string $voice  Voice id (alloy, echo, fable, onyx, nova, shimmer).
+     * @param string $voice  Voice id (see mod_form_helper::get_voice_options()).
      * @param int    $userid Moodle user id for rate limiting.
-     * @return string Raw MP3 audio bytes.
-     * @throws \moodle_exception on API error.
+     * @return bool True if audio was streamed, false if the API call failed before any output.
      */
-    public function text_to_speech(string $text, string $voice = 'onyx', int $userid = 0): string {
+    public function stream_speech(string $text, string $voice, int $userid = 0): bool {
         $this->check_rate_limit($userid);
 
-        $body = [
-            'model' => 'tts-1',
+        $body = json_encode([
+            'model' => \mod_aiviva\form\mod_form_helper::TTS_MODEL,
             'input' => $text,
-            'voice' => $voice,
-        ];
+            'voice' => \mod_aiviva\form\mod_form_helper::resolve_voice($voice),
+        ]);
 
-        return $this->request_raw('POST', '/audio/speech', $body, $this->apikeysecondary ?? $this->apikey);
+        $started = false;
+        $curl = new \curl();
+        $curl->setHeader([
+            'Authorization: Bearer ' . ($this->apikeysecondary ?? $this->apikey),
+            'Content-Type: application/json',
+        ]);
+        $curl->post(self::BASE_URL . '/audio/speech', $body, [
+            'CURLOPT_TIMEOUT'        => $this->timeout,
+            'CURLOPT_RETURNTRANSFER' => false,
+            'CURLOPT_WRITEFUNCTION'  => static function ($handle, $chunk) use (&$started) {
+                if (!$started) {
+                    if ((int)curl_getinfo($handle, CURLINFO_RESPONSE_CODE) !== 200) {
+                        return 0; // Not audio: abort the transfer without sending anything.
+                    }
+                    $started = true;
+                    header('Content-Type: audio/mpeg');
+                    header('Cache-Control: no-store');
+                    header('X-Accel-Buffering: no');
+                    while (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                }
+                echo $chunk;
+                flush();
+                return strlen($chunk);
+            },
+        ]);
+
+        return $started;
+    }
+
+    /**
+     * Runs the content filter on a piece of text, if the filter is enabled.
+     *
+     * @param string $text Text written or spoken by a student.
+     * @throws \moodle_exception if the content is flagged.
+     */
+    public function moderate_text(string $text): void {
+        if ($this->contentfilter) {
+            $this->moderate_messages([['role' => 'user', 'content' => $text]]);
+        }
     }
 
     /**
@@ -289,7 +391,7 @@ class openai_client {
     }
 
     /**
-     * Makes a multipart/form-data request (used for file uploads / Whisper).
+     * Makes a multipart/form-data request (used for file uploads / transcription).
      *
      * @param string      $method HTTP method.
      * @param string      $path   URL path.
@@ -327,47 +429,6 @@ class openai_client {
     }
 
     /**
-     * Makes a request and returns raw binary response (used for TTS).
-     *
-     * @param string      $method HTTP method.
-     * @param string      $path   URL path.
-     * @param array       $body   Request body.
-     * @param string|null $key    Override API key.
-     * @return string Raw binary response.
-     * @throws \moodle_exception on failure.
-     */
-    private function request_raw(string $method, string $path, array $body, ?string $key = null): string {
-        $key = $key ?? $this->apikey;
-        $url = self::BASE_URL . $path;
-
-        $curl = new \curl();
-        $curl->setHeader([
-            'Authorization: Bearer ' . $key,
-            'Content-Type: application/json',
-        ]);
-        $raw = $curl->post($url, json_encode($body), ['CURLOPT_TIMEOUT' => $this->timeout]);
-
-        if ($curl->get_errno()) {
-            throw new \moodle_exception('openai_api_error', 'mod_aiviva', '', $curl->error);
-        }
-
-        $info = $curl->get_info();
-        $status = (int)($info['http_code'] ?? 0);
-
-        if ($status < 200 || $status >= 300) {
-            $decoded = json_decode($raw, true);
-            throw new \moodle_exception(
-                'openai_api_error',
-                'mod_aiviva',
-                '',
-                $decoded['error']['message'] ?? "HTTP {$status}"
-            );
-        }
-
-        return $raw;
-    }
-
-    /**
      * Checks the OpenAI moderation endpoint for each user message.
      * Throws if content is flagged.
      *
@@ -375,16 +436,26 @@ class openai_client {
      * @throws \moodle_exception if content is flagged.
      */
     private function moderate_messages(array $messages): void {
-        $inputs = array_filter(
-            array_column(array_filter($messages, fn($m) => $m['role'] === 'user'), 'content')
-        );
+        // Only text is moderated: multimodal messages carry their text in 'text' parts.
+        $inputs = [];
+        foreach ($messages as $message) {
+            if ($message['role'] !== 'user') {
+                continue;
+            }
+            $parts = is_array($message['content']) ? $message['content'] : [['type' => 'text', 'text' => $message['content']]];
+            foreach ($parts as $part) {
+                if (($part['type'] ?? '') === 'text' && trim($part['text'] ?? '') !== '') {
+                    $inputs[] = $part['text'];
+                }
+            }
+        }
 
         if (empty($inputs)) {
             return;
         }
 
         try {
-            $response = $this->request('POST', '/moderations', ['input' => array_values($inputs)]);
+            $response = $this->request('POST', '/moderations', ['model' => 'omni-moderation-latest', 'input' => $inputs]);
             foreach ($response['results'] ?? [] as $result) {
                 if (!empty($result['flagged'])) {
                     throw new \moodle_exception('content_flagged', 'mod_aiviva');
@@ -439,11 +510,9 @@ class openai_client {
      * @param int    $status HTTP status code.
      */
     private function log_request(string $method, string $path, int $status): void {
-        if (debugging('', DEBUG_DEVELOPER)) {
-            debugging(
-                sprintf('aiviva openai: %s %s -> %d', $method, $path, $status),
-                DEBUG_DEVELOPER
-            );
+        // Only in command-line runs (cron, tasks), where a trace helps and no user sees it.
+        if (CLI_SCRIPT && debugging('', DEBUG_DEVELOPER)) {
+            mtrace(sprintf('aiviva openai: %s %s -> %d', $method, $path, $status));
         }
     }
 
@@ -456,6 +525,11 @@ class openai_client {
     private function decrypt_key(string $encrypted): string {
         if (empty($encrypted)) {
             return '';
+        }
+        // The admin settings store the key as entered (admin_setting_configpasswordunmask
+        // does not encrypt), so only values carrying an encryption prefix are decrypted.
+        if (!preg_match('/^(sodium|openssl-aes-256-ctr):/', $encrypted)) {
+            return $encrypted;
         }
         try {
             return \core\encryption::decrypt($encrypted);

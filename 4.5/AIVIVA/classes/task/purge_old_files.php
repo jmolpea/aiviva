@@ -18,21 +18,30 @@
  * Scheduled task: purges old video/audio files for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_aiviva\task;
 
 /**
- * Daily task that deletes video and audio files older than the configured
- * purge threshold, while preserving the database records.
+ * Daily task that deletes recordings older than the activity's retention
+ * period, while preserving the database records (transcripts, grades).
+ *
+ * Purged: the screen recording, its audio track and screenshots, and the
+ * recorded tribunal answers. The PDF is kept, as it is the work being graded.
  *
  * Files are NOT purged if:
- *  - The submission has a pending grading workflow (workflow_state != 'released').
- *  - The activity-level video_purge_days is set to 0 (purge disabled).
+ *  - the attempt is finished but its grade has not been released yet;
+ *  - the activity's retention period is 0 (purge disabled).
+ *
+ * Attempts that were abandoned before being submitted are purged too, counting
+ * from their last modification.
  */
 class purge_old_files extends \core\task\scheduled_task {
+    /** @var string[] File areas that are emptied. */
+    private const FILEAREAS = ['submission_video', 'submission_audio', 'submission_frames', 'tribunal_audio'];
+
     /**
      * Returns the human-readable task name.
      *
@@ -48,73 +57,40 @@ class purge_old_files extends \core\task\scheduled_task {
     public function execute(): void {
         global $DB;
 
-        $fs          = get_file_storage();
-        $globaldays  = (int)get_config('mod_aiviva', 'video_purge_days');
-        $now         = time();
-        $purged      = 0;
-        $errors      = 0;
+        $fs     = get_file_storage();
+        $now    = time();
+        $purged = 0;
 
-        // Iterate over all aiviva instances.
-        $instances = $DB->get_records('aiviva', null, '', 'id, video_purge_days');
-
-        foreach ($instances as $aiviva) {
-            $days = (int)$aiviva->video_purge_days ?: $globaldays;
+        foreach ($DB->get_records('aiviva', null, '', 'id, video_purge_days') as $aiviva) {
+            $days = (int)$aiviva->video_purge_days;
             if ($days <= 0) {
                 continue; // Purge disabled for this activity.
             }
-            $threshold = $now - ($days * DAYSECS);
+            $cm = get_coursemodule_from_instance('aiviva', $aiviva->id);
+            if (!$cm) {
+                continue;
+            }
+            $context = \context_module::instance($cm->id);
 
-            // Find eligible submissions: graded, released, and submitted before threshold.
-            $sql = "SELECT s.id, s.video_fileid, s.aiviva
+            $sql = "SELECT s.id
                       FROM {aiviva_submissions} s
-                     WHERE s.aiviva       = :aiviva
+                     WHERE s.aiviva = :aiviva
                        AND s.video_fileid > 0
-                       AND s.timesubmitted < :threshold
-                       AND (s.workflow_state = 'released' OR s.workflow_state IS NULL)";
-            $params = ['aiviva' => $aiviva->id, 'threshold' => $threshold];
+                       AND COALESCE(s.timesubmitted, s.timemodified) < :threshold
+                       AND (s.workflow_state = 'released' OR s.timesubmitted IS NULL)";
+            $params = ['aiviva' => $aiviva->id, 'threshold' => $now - $days * DAYSECS];
 
-            $submissions = $DB->get_records_sql($sql, $params);
-
-            foreach ($submissions as $submission) {
-                try {
-                    $context = $this->get_context_for_submission($submission);
-                    if (!$context) {
-                        continue;
-                    }
-
-                    // Delete video file.
-                    foreach (['submission_video', 'submission_audio'] as $filearea) {
-                        $files = $fs->get_area_files($context->id, 'mod_aiviva', $filearea, $submission->id, '', false);
-                        foreach ($files as $file) {
-                            $file->delete();
-                            $purged++;
-                        }
-                    }
-
-                    // Mark as purged in DB (-1 = purged).
-                    $DB->set_field('aiviva_submissions', 'video_fileid', -1, ['id' => $submission->id]);
-                    $DB->set_field('aiviva_submissions', 'timemodified', $now, ['id' => $submission->id]);
-                } catch (\Throwable $e) {
-                    $errors++;
-                    mtrace('aiviva purge error for submission ' . $submission->id . ': ' . $e->getMessage());
+            foreach ($DB->get_records_sql($sql, $params) as $submission) {
+                foreach (self::FILEAREAS as $filearea) {
+                    $files = $fs->get_area_files($context->id, 'mod_aiviva', $filearea, $submission->id, 'id', false);
+                    $purged += count($files);
+                    $fs->delete_area_files($context->id, 'mod_aiviva', $filearea, $submission->id);
                 }
+                // Mark as purged in DB (-1 = purged).
+                $DB->set_field('aiviva_submissions', 'video_fileid', -1, ['id' => $submission->id]);
             }
         }
 
-        mtrace("aiviva purge_old_files: purged {$purged} file(s), {$errors} error(s).");
-    }
-
-    /**
-     * Retrieves the context_module for a submission's aiviva instance.
-     *
-     * @param \stdClass $submission Minimal submission record (needs aiviva field).
-     * @return \context_module|null Null if no course module found.
-     */
-    private function get_context_for_submission(\stdClass $submission): ?\context_module {
-        $cm = get_coursemodule_from_instance('aiviva', $submission->aiviva);
-        if (!$cm) {
-            return null;
-        }
-        return \context_module::instance($cm->id);
+        mtrace("aiviva purge_old_files: purged {$purged} file(s).");
     }
 }

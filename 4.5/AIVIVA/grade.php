@@ -18,7 +18,7 @@
  * Redirect handler used by the gradebook to navigate to a student submission.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -37,10 +37,10 @@ $context = context_module::instance($cm->id);
 if ($userid && $userid != $USER->id) {
     // Teacher accessing a student submission — redirect to submissions.php.
     require_capability('mod/aiviva:grade', $context);
-    redirect(new moodle_url('/mod/aiviva/submissions.php', [
-        'id'     => $id,
-        'userid' => $userid,
-    ]));
+    $aiviva = $DB->get_record('aiviva', ['id' => $cm->instance], 'id', MUST_EXIST);
+    $latest = \mod_aiviva\local\manager::get_latest_submission($aiviva->id, $userid);
+    $params = ['id' => $id] + ($latest ? ['submissionid' => $latest->id] : []);
+    redirect(new moodle_url('/mod/aiviva/submissions.php', $params));
 } else {
     redirect(new moodle_url('/mod/aiviva/view.php', ['id' => $id]));
 }

@@ -18,7 +18,7 @@
  * Output renderer for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,8 +28,15 @@ namespace mod_aiviva\output;
  * Activity module renderer for mod_aiviva.
  */
 class renderer extends \plugin_renderer_base {
+    /** @var string[] Breakdown key => language string naming the step. */
+    private const STEPS = [
+        'step1_pdf'      => 'step1_title',
+        'step2_video'    => 'step2_title',
+        'step3_tribunal' => 'step3_title',
+    ];
+
     /**
-     * Renders the activity status badge.
+     * Renders a submission status as a badge.
      *
      * @param string $status Submission status string.
      * @return string HTML badge.
@@ -44,37 +51,44 @@ class renderer extends \plugin_renderer_base {
             'grading'   => 'warning',
             'graded'    => 'success',
         ];
-        $class = $classmap[$status] ?? 'secondary';
-        return \html_writer::span(
-            s(ucfirst($status)),
-            "badge bg-{$class}"
-        );
+        if (!isset($classmap[$status])) {
+            return \html_writer::span(s($status), 'badge bg-secondary');
+        }
+        return \html_writer::span(get_string('status_' . $status, 'mod_aiviva'), 'badge bg-' . $classmap[$status]);
     }
 
     /**
-     * Renders a grade breakdown as a formatted HTML table.
+     * Renders the AI's per-step grade breakdown as a table.
+     *
+     * The breakdown is produced by a language model, so every value is escaped
+     * and only the three known steps are read from it.
      *
      * @param array $breakdown Decoded grade_breakdown JSON.
-     * @return string HTML table.
+     * @return string HTML table ('' if there is nothing to show).
      */
     public function render_grade_breakdown(array $breakdown): string {
-        if (empty($breakdown)) {
-            return '';
-        }
-
         $table = new \html_table();
-        $table->head = ['Step', 'Score', 'Weight', 'Feedback'];
-        $table->attributes['class'] = 'generaltable';
+        $table->head = [
+            get_string('breakdown_step', 'mod_aiviva'),
+            get_string('breakdown_score', 'mod_aiviva'),
+            get_string('breakdown_weight', 'mod_aiviva'),
+            get_string('feedback', 'mod_aiviva'),
+        ];
+        $table->attributes['class'] = 'generaltable aiviva-breakdown';
 
-        foreach ($breakdown as $step => $data) {
+        foreach (self::STEPS as $step => $stringid) {
+            if (!isset($breakdown[$step]) || !is_array($breakdown[$step])) {
+                continue;
+            }
+            $data = $breakdown[$step];
             $table->data[] = [
-                s(ucfirst(str_replace('_', ' ', $step))),
-                (int)($data['score'] ?? 0) . '/100',
-                ((float)($data['weight'] ?? 0)) * 100 . '%',
-                s($data['feedback'] ?? ''),
+                get_string($stringid, 'mod_aiviva'),
+                format_float((float)($data['score'] ?? 0), 1) . ' / 100',
+                format_float((float)($data['weight'] ?? 0) * 100, 0) . '%',
+                format_text((string)($data['feedback'] ?? ''), FORMAT_PLAIN),
             ];
         }
 
-        return \html_writer::table($table);
+        return $table->data ? \html_writer::table($table) : '';
     }
 }

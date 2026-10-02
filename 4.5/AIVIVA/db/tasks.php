@@ -18,7 +18,7 @@
  * Scheduled tasks for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,6 +30,15 @@ $tasks = [
         'blocking'  => 0,
         'minute'    => '30',
         'hour'      => '2',
+        'day'       => '*',
+        'month'     => '*',
+        'dayofweek' => '*',
+    ],
+    [
+        'classname' => '\mod_aiviva\task\close_abandoned_tribunals',
+        'blocking'  => 0,
+        'minute'    => '*/10',
+        'hour'      => '*',
         'day'       => '*',
         'month'     => '*',
         'dayofweek' => '*',

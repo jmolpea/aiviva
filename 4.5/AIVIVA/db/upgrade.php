@@ -18,12 +18,17 @@
  * Upgrade script for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * Upgrades the database structure for mod_aiviva.
+ *
+ * Upgrade blocks MUST appear in strictly ascending version order, and the
+ * version passed to upgrade_mod_savepoint() must match the one tested in the
+ * surrounding condition. Adding a block out of order makes the savepoint go
+ * backwards, which raises downgrade_exception and aborts the upgrade halfway.
  *
  * @param int $oldversion the version we are upgrading from.
  * @return bool always true.
@@ -31,25 +36,6 @@
 function xmldb_aiviva_upgrade(int $oldversion): bool {
     global $DB;
     $dbman = $DB->get_manager();
-
-    if ($oldversion < 2024032203) {
-        // Add tribunal_briefing column to aiviva_submissions.
-        $table = new xmldb_table('aiviva_submissions');
-        $field = new xmldb_field(
-            'tribunal_briefing',
-            XMLDB_TYPE_TEXT,
-            null,
-            null,
-            null,
-            null,
-            null,
-            'tribunal_analysis'
-        );
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        upgrade_mod_savepoint(true, 2024032203, 'aiviva');
-    }
 
     if ($oldversion < 2024032202) {
         // Add aiviva_overrides table.
@@ -76,6 +62,123 @@ function xmldb_aiviva_upgrade(int $oldversion): bool {
         }
 
         upgrade_mod_savepoint(true, 2024032202, 'aiviva');
+    }
+
+    if ($oldversion < 2024032203) {
+        // Add tribunal_briefing column to aiviva_submissions.
+        $table = new xmldb_table('aiviva_submissions');
+        $field = new xmldb_field(
+            'tribunal_briefing',
+            XMLDB_TYPE_TEXT,
+            null,
+            null,
+            null,
+            null,
+            null,
+            'tribunal_analysis'
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2024032203, 'aiviva');
+    }
+
+    if ($oldversion < 2026100100) {
+        // Move activities off retired OpenAI models and update the column defaults.
+        $table = new xmldb_table('aiviva');
+        $modelmap = \mod_aiviva\form\mod_form_helper::get_legacy_model_map();
+        foreach (['openai_model_pdf', 'openai_model_tribunal', 'openai_model_eval'] as $fieldname) {
+            foreach ($modelmap as $retired => $replacement) {
+                $DB->set_field('aiviva', $fieldname, $replacement, [$fieldname => $retired]);
+            }
+            $field = new xmldb_field(
+                $fieldname,
+                XMLDB_TYPE_CHAR,
+                '50',
+                null,
+                XMLDB_NOTNULL,
+                null,
+                \mod_aiviva\form\mod_form_helper::DEFAULT_MODEL
+            );
+            $dbman->change_field_default($table, $field);
+        }
+
+        // The per-model checkboxes were replaced by the 'enabled_models' setting.
+        unset_config('enable_gpt4o', 'mod_aiviva');
+        unset_config('enable_gpt4o_mini', 'mod_aiviva');
+
+        upgrade_mod_savepoint(true, 2026100100, 'aiviva');
+    }
+
+    if ($oldversion < 2026100200) {
+        // Activity: availability window, PDF size limit and grade weights.
+        $table = new xmldb_table('aiviva');
+        $fields = [
+            new xmldb_field('timeopen', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'max_attempts'),
+            new xmldb_field('timeclose', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timeopen'),
+            new xmldb_field('step1_maxfilesize', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '20', 'timeclose'),
+            new xmldb_field('weight_pdf', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '33', 'grade'),
+            new xmldb_field('weight_video', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '33', 'weight_pdf'),
+            new xmldb_field('weight_tribunal', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '34', 'weight_video'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        // Completion by grade is handled by core; the custom columns were never used.
+        foreach (['completiongrade', 'completionmingradeval'] as $fieldname) {
+            $field = new xmldb_field($fieldname);
+            if ($dbman->field_exists($table, $field)) {
+                $dbman->drop_field($table, $field);
+            }
+        }
+
+        // Submission: server-side tribunal clock and the AI-proposed grade.
+        $table = new xmldb_table('aiviva_submissions');
+        $fields = [
+            new xmldb_field('tribunal_timestart', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'tribunal_briefing'),
+            new xmldb_field('ai_grade', XMLDB_TYPE_NUMBER, '10, 5', null, null, null, null, 'tribunal_timestart'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        // Grades produced before this version were all AI grades unless a teacher edited them.
+        $DB->execute(
+            "UPDATE {aiviva_submissions} SET ai_grade = final_grade WHERE ai_grade IS NULL AND grader_userid IS NULL"
+        );
+
+        // Settings that were never read by the plugin.
+        unset_config('disk_warning_threshold_gb', 'mod_aiviva');
+        unset_config('ffmpeg_path', 'mod_aiviva');
+
+        upgrade_mod_savepoint(true, 2026100200, 'aiviva');
+    }
+
+    if ($oldversion < 2026100201) {
+        // The privacy notice setting used to be pre-filled with the old built-in text, which
+        // contained an unreplaced placeholder and statements that are no longer accurate.
+        // Clearing it makes the current built-in notice (translated, with the real retention) apply.
+        $notice = (string)get_config('mod_aiviva', 'gdpr_notice_text');
+        if (strpos($notice, '{$a}') !== false) {
+            set_config('gdpr_notice_text', '', 'mod_aiviva');
+        }
+
+        // Limits saved with the previous, lower defaults would cut long analyses short or
+        // time out on large documents now that work is always sent in full.
+        $minimums = ['safety_max_tokens' => 16000, 'api_timeout' => 300, 'api_rate_limit' => 30];
+        foreach ($minimums as $name => $minimum) {
+            $current = get_config('mod_aiviva', $name);
+            if ($current !== false && (int)$current < $minimum) {
+                set_config($name, $minimum, 'mod_aiviva');
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2026100201, 'aiviva');
     }
 
     return true;

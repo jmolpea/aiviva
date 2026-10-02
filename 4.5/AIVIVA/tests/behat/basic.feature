@@ -1,0 +1,48 @@
+@mod @mod_aiviva
+Feature: Basic use of the AI Viva activity
+  In order to assess students with an AI viva
+  As a teacher
+  I need students to reach the activity and to review their attempts
+
+  Background:
+    Given the following "users" exist:
+      | username | firstname | lastname | email                |
+      | teacher1 | Terry     | Teacher  | teacher1@example.com |
+      | student1 | Sam       | Student  | student1@example.com |
+    And the following "courses" exist:
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | teacher1 | C1     | editingteacher |
+      | student1 | C1     | student        |
+    And the following "activities" exist:
+      | activity | course | name          | idnumber | max_attempts |
+      | aiviva   | C1     | Thesis viva   | viva1    | 2            |
+
+  Scenario: A student must accept the privacy notice before starting
+    When I am on the "Thesis viva" "aiviva activity" page logged in as student1
+    Then I should see "Privacy Notice"
+    And I should see "OpenAI"
+    And I should see "Attempt 0 of 2"
+    And I should not see "Drag and drop your PDF here"
+    When I set the field "consent" to "1"
+    And I press "I'm ready to begin"
+    Then I should see "Drag and drop your PDF here"
+    And I should see "Attempt 1 of 2"
+    And I should not see "Privacy Notice"
+
+  Scenario: A teacher sees the submissions page instead of the student steps
+    When I am on the "Thesis viva" "aiviva activity" page logged in as teacher1
+    Then I should see "View submissions"
+    And I should not see "Privacy Notice"
+    When I follow "View submissions"
+    Then I should see "No submissions yet"
+
+  Scenario: A closed activity cannot be started
+    Given the following "activities" exist:
+      | activity | course | name        | idnumber | timeclose  |
+      | aiviva   | C1     | Closed viva | viva2    | 1000000000 |
+    When I am on the "Closed viva" "aiviva activity" page logged in as student1
+    Then I should see "This activity is closed"
+    And I should not see "Privacy Notice"
