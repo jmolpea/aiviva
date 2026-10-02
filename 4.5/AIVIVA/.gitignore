@@ -1,0 +1,21 @@
+# Licence signing material — MUST NEVER be committed or distributed.
+*.key
+*.pem
+license_private.key
+generate_license.php
+
+# Build artefacts
+*.zip
+/dist/
+
+# Local tooling and assistant config
+.claude/
+CLAUDE.md
+.vscode/
+.idea/
+
+# PHP / JS tooling
+node_modules/
+vendor/
+.phpunit.result.cache
+.grunt/

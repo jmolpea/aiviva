@@ -18,7 +18,7 @@
  * User/group overrides management page for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -63,7 +63,6 @@ if ($action === 'add' || ($action === 'edit' && $overrideid)) {
     $PAGE->set_title(get_string('overrides_heading', 'mod_aiviva') . ': ' . format_string($aiviva->name));
     $PAGE->set_heading(format_string($course->fullname));
     $PAGE->set_context($context);
-    $PAGE->requires->css('/mod/aiviva/styles.css');
 
     $override = null;
     if ($action === 'edit' && $overrideid) {
@@ -103,8 +102,16 @@ if ($action === 'add' || ($action === 'edit' && $overrideid)) {
             $record->id = $overrideid;
             $DB->update_record('aiviva_overrides', $record);
         } else {
-            $record->timecreated = time();
-            $DB->insert_record('aiviva_overrides', $record);
+            // One override per user or group: adding a second one replaces the first.
+            $target   = $record->userid ? ['userid' => $record->userid] : ['groupid' => $record->groupid];
+            $existing = $DB->get_record('aiviva_overrides', ['aiviva' => $aiviva->id] + $target, 'id', IGNORE_MULTIPLE);
+            if ($existing) {
+                $record->id = $existing->id;
+                $DB->update_record('aiviva_overrides', $record);
+            } else {
+                $record->timecreated = time();
+                $DB->insert_record('aiviva_overrides', $record);
+            }
         }
 
         redirect(
@@ -116,11 +123,11 @@ if ($action === 'add' || ($action === 'edit' && $overrideid)) {
     }
 
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($aiviva->name) . ' — ' .
+    echo $OUTPUT->heading(format_string($aiviva->name) . ': ' .
         get_string($action === 'edit' ? 'override_edit' : 'override_add', 'mod_aiviva'));
     echo html_writer::link(
         $baseurl,
-        '← ' . get_string('overrides_heading', 'mod_aiviva'),
+        get_string('overrides_heading', 'mod_aiviva'),
         ['class' => 'btn btn-sm btn-outline-secondary mb-3']
     );
     $form->display();
@@ -133,10 +140,9 @@ $PAGE->set_url('/mod/aiviva/overrides.php', ['id' => $id]);
 $PAGE->set_title(get_string('overrides_heading', 'mod_aiviva') . ': ' . format_string($aiviva->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
-$PAGE->requires->css('/mod/aiviva/styles.css');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($aiviva->name) . ' — ' . get_string('overrides_heading', 'mod_aiviva'));
+echo $OUTPUT->heading(format_string($aiviva->name) . ': ' . get_string('overrides_heading', 'mod_aiviva'));
 
 echo html_writer::link(
     new moodle_url('/mod/aiviva/overrides.php', ['id' => $id, 'action' => 'add']),
@@ -195,9 +201,13 @@ foreach ($overrides as $ov) {
 
     $actions = html_writer::link($editurl, get_string('edit'), ['class' => 'btn btn-sm btn-outline-primary me-1']) .
                html_writer::link($deleteurl, get_string('delete'), [
-                   'class'   => 'btn btn-sm btn-outline-danger',
-                   'onclick' => 'return confirm(' .
-                       json_encode(get_string('override_confirm_delete', 'mod_aiviva')) . ');',
+                   'class'                            => 'btn btn-sm btn-outline-danger',
+                   'data-confirmation'                => 'modal',
+                   'data-confirmation-type'           => 'delete',
+                   'data-confirmation-title-str'      => json_encode(['delete', 'core']),
+                   'data-confirmation-content-str'    => json_encode(['override_confirm_delete', 'mod_aiviva']),
+                   'data-confirmation-yes-button-str' => json_encode(['delete', 'core']),
+                   'data-confirmation-destination'    => $deleteurl->out(false),
                ]);
 
     $table->data[] = [$typestr, $who, $maxattempts, $timeopen, $timeclose, $actions];

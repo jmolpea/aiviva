@@ -7,6 +7,74 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] — 2026-10-02 (version 2026100202)
+
+### Tribunal fluency
+
+- Examiner speech is streamed: it starts playing about a second after it is requested instead of after the whole clip is synthesised.
+- The student's answer is shown as soon as it has been transcribed, with the next examiner marked as "thinking", instead of nothing until the reply is ready.
+- The examiners' briefing and opening words are prepared before the student presses start (after the presentation analysis, or while on the ready screen), so the session begins at once.
+- The content filter runs once on each new answer rather than on the whole conversation at every turn.
+
+### Other
+
+- Standard monochrome activity icon (`pix/monologo.svg`).
+- Status and error messages were hidden by a style rule; the selected PDF is now shown inside the drop zone.
+- Tribunal answers were rejected by the transcription service; evaluation from cron failed to notify; a regeneration in progress could overwrite a grade published meanwhile.
+- On upgrade, limits saved with the old lower defaults are raised and the old pre-filled privacy notice is cleared.
+
+
+### Security and integrity
+
+- Every student action checks the attempt's state: a document or recording cannot be replaced once analysed, and nothing can be changed after submission.
+- The tribunal clock, turn order and transcript are owned by the server. Reloading the page resumes the same session; it no longer restarts the clock.
+- Tribunal answers are recorded and transcribed on the server, and the recordings are kept for the teacher. The browser's speech recognition is no longer used.
+- Sessions abandoned by the student are closed and evaluated by a scheduled task.
+- AI-generated values are escaped wherever they are shown; manual grades are validated against the maximum grade.
+- Teachers restricted to their own groups only see their groups' attempts.
+
+### Evaluation
+
+- The evaluator receives the original PDF and all evidence in full; nothing is truncated.
+- Per-step weights are configurable; the final grade is computed by the plugin, not by the model.
+- Analyses and feedback are written in the student's language, also when produced by cron or a teacher.
+
+### Grading
+
+- Draft, publish and withdraw now behave as expected; edits made before publishing are kept.
+- The AI's proposed grade is stored separately from the final grade; regenerating never overwrites a teacher's edit nor notifies the student again.
+
+### Now functional
+
+- Multiple attempts (best released grade counts), user and group overrides, opening and closing dates, custom avatars, the "complete all three steps" completion rule, the extra safety prompt, the per-activity retention period, and a PDF size limit of its own.
+- Screenshots of the presentation are captured and analysed; a separate audio track keeps long recordings transcribable.
+
+### Privacy
+
+- The privacy notice, the admin texts and the Privacy API metadata now state exactly what is sent to OpenAI.
+- Student pseudonyms use a secret generated per site.
+- Data export includes analyses, transcripts and all files; recordings of abandoned attempts are purged too.
+
+### Removed
+
+- Group submission, the disk-space warning, the FFmpeg path and the anonymisation salt settings (none had any effect), and the use of `shell_exec`/`exec`.
+
+### Added
+
+- PHPUnit and Behat tests.
+
+### Changed
+
+- Model catalogue updated to GPT-6.1 Sol (default), GPT-6 Astra and GPT-6 Luna; activities still set to GPT-4o / GPT-4o mini are migrated on upgrade.
+- Transcription now uses `gpt-transcribe`; tribunal voices use `gpt-4o-mini-tts` with 13 voices.
+- The two per-model admin checkboxes are replaced by a single "Models available to teachers" setting.
+- Requests send `max_completion_tokens` and a low reasoning effort, as required by the current models.
+
+### Fixed
+
+- The OpenAI API key entered in the admin settings was discarded (treated as a failed decryption), so no API call could authenticate.
+- PDF analysis via the Responses API read the wrong output item for reasoning models and always fell back to raw text extraction.
+
 ## [1.0.0] — 2024-03-22
 
 ### Added

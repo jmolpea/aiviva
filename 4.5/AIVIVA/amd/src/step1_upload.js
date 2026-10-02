@@ -14,15 +14,16 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Step 1 — PDF upload and analysis UI for mod_aiviva.
+ * Step 1 — PDF upload with drag & drop.
  *
  * @module     mod_aiviva/step1_upload
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {uploadFile, showStatus} from './utils';
+import {post, showStatus, showProgress, waitForStatusChange} from './utils';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 
 /** @type {Object} Module configuration passed from PHP. */
 let cfg = {};
@@ -35,8 +36,7 @@ let selectedFile = null;
  *
  * @param {Object} config - Configuration object from PHP.
  * @param {number} config.cmid         - Course module id.
- * @param {string} config.sesskey      - Moodle session key.
- * @param {number} config.submissionid - Submission id (0 if not yet created).
+ * @param {number} config.submissionid - Submission id.
  * @param {number} config.maxfilesize  - Max upload size in MB.
  */
 export const init = (config) => {
@@ -45,14 +45,12 @@ export const init = (config) => {
     const dropzone   = document.getElementById('aiviva_pdf_dropzone');
     const fileInput  = document.getElementById('aiviva_pdf_input');
     const uploadBtn  = document.getElementById('aiviva_pdf_upload_btn');
-    const progressEl = document.getElementById('aiviva_pdf_progress');
     const statusEl   = document.getElementById('aiviva_pdf_status');
 
-    if (!dropzone || !fileInput) {
+    if (!dropzone || !fileInput || !uploadBtn) {
         return;
     }
 
-    // Drag & drop events.
     dropzone.addEventListener('dragover', e => {
         e.preventDefault();
         dropzone.classList.add('drag-over');
@@ -64,16 +62,24 @@ export const init = (config) => {
         handleFileSelect(e.dataTransfer.files[0], uploadBtn, statusEl);
     });
 
-    // Click to browse.
-    dropzone.addEventListener('click', () => fileInput.click());
+    // Click or keyboard to browse.
+    dropzone.addEventListener('click', e => {
+        if (e.target !== fileInput) {
+            fileInput.click();
+        }
+    });
+    dropzone.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
     fileInput.addEventListener('change', e => handleFileSelect(e.target.files[0], uploadBtn, statusEl));
 
-    // Upload button.
     uploadBtn.addEventListener('click', () => {
-        if (!selectedFile) {
-            return;
+        if (selectedFile) {
+            confirmAndUpload(uploadBtn, statusEl, dropzone);
         }
-        confirmAndUpload(selectedFile, progressEl, statusEl, uploadBtn);
     });
 };
 
@@ -84,124 +90,74 @@ export const init = (config) => {
  * @param {HTMLElement} uploadBtn - Upload button element.
  * @param {HTMLElement} statusEl  - Status message element.
  */
-const handleFileSelect = async (file, uploadBtn, statusEl) => {
+const handleFileSelect = async(file, uploadBtn, statusEl) => {
     if (!file) {
         return;
     }
+    selectedFile = null;
+    uploadBtn.disabled = true;
 
-    // Validate MIME type.
     if (file.type !== 'application/pdf') {
-        const msg = await getString('error_not_pdf', 'mod_aiviva');
-        showStatus(statusEl, msg, 'danger');
+        showStatus(statusEl, await getString('error_not_pdf', 'mod_aiviva'), 'danger');
         return;
     }
-
-    // Validate file size.
-    const maxBytes = cfg.maxfilesize * 1024 * 1024;
-    if (file.size > maxBytes) {
-        const msg = await getString('error_file_too_large', 'mod_aiviva', cfg.maxfilesize);
-        showStatus(statusEl, msg, 'danger');
+    if (file.size > cfg.maxfilesize * 1024 * 1024) {
+        showStatus(statusEl, await getString('error_file_too_large', 'mod_aiviva', cfg.maxfilesize), 'danger');
         return;
     }
 
     selectedFile = file;
-    const msg = await getString('pdf_selected', 'mod_aiviva', {name: file.name, size: formatBytes(file.size)});
-    showStatus(statusEl, msg, 'info');
+    const size = (file.size / 1048576).toFixed(1) + ' MB';
+    const selectedMsg = await getString('pdf_selected', 'mod_aiviva', {name: file.name, size});
+    showStatus(statusEl, await getString('pdf_selected_next', 'mod_aiviva'), 'info');
+
+    // Show the chosen file inside the drop zone itself, where the student is looking.
+    const dropzone = document.getElementById('aiviva_pdf_dropzone');
+    const label = dropzone.querySelector('.dropzone-label');
+    if (label) {
+        label.textContent = selectedMsg;
+    }
+    dropzone.classList.add('has-file');
     uploadBtn.disabled = false;
+    uploadBtn.focus();
 };
 
 /**
- * Shows a confirmation dialog then uploads the PDF.
+ * Asks for confirmation, uploads the PDF, then waits for the analysis to finish.
  *
- * @param {File}        file       - PDF file to upload.
- * @param {HTMLElement} progressEl - Progress bar element.
- * @param {HTMLElement} statusEl   - Status message element.
- * @param {HTMLElement} uploadBtn  - Upload button (disabled during upload).
+ * @param {HTMLElement} uploadBtn - Upload button (disabled during upload).
+ * @param {HTMLElement} statusEl  - Status message element.
+ * @param {HTMLElement} dropzone  - The drop zone, hidden once the upload succeeds.
  */
-const confirmAndUpload = async (file, progressEl, statusEl, uploadBtn) => {
-    const confirmMsg = await getString('confirm_pdf_upload', 'mod_aiviva');
-    if (!window.confirm(confirmMsg)) {
-        return;
+const confirmAndUpload = async(uploadBtn, statusEl, dropzone) => {
+    try {
+        await Notification.saveCancelPromise(
+            await getString('upload_pdf', 'mod_aiviva'),
+            await getString('confirm_pdf_upload', 'mod_aiviva'),
+            await getString('upload_pdf', 'mod_aiviva')
+        );
+    } catch (e) {
+        return; // Cancelled.
     }
 
+    const progressEl = document.getElementById('aiviva_pdf_progress');
     uploadBtn.disabled = true;
-    progressEl.style.display = 'block';
-    progressEl.innerHTML = '<div class="progress"><div class="progress-bar" style="width:0%"></div></div>';
-
-    const formData = new FormData();
-    formData.append('pdffile', file);
-    formData.append('cmid', cfg.cmid);
-    formData.append('submissionid', cfg.submissionid);
-    formData.append('sesskey', cfg.sesskey);
-    formData.append('action', 'upload_pdf');
-
-    const uploadUrl = M.cfg.wwwroot + '/mod/aiviva/ajax.php';
 
     try {
-        const onProgress = (pct) => {
-            const bar = progressEl.querySelector('.progress-bar');
-            if (bar) {
-                bar.style.width = pct + '%';
-                bar.textContent = pct + '%';
-            }
-            // Show "analysing" message as soon as file is fully uploaded,
-            // before the server response arrives (analysis can take 30-60 s).
-            if (pct >= 100) {
-                getString('pdf_uploaded_analysing', 'mod_aiviva')
-                    .then(msg => showStatus(statusEl, msg, 'success'));
-            }
-        };
-
-        const result = await uploadFile(uploadUrl, formData, onProgress);
-
-        if (result.success) {
-            // Analysis is running in background — show a refresh button after 15 s.
-            scheduleRefreshButton(statusEl);
-        } else {
-            showStatus(statusEl, result.error || 'Upload failed', 'danger');
-            uploadBtn.disabled = false;
-        }
+        await post(
+            'upload_pdf',
+            {cmid: cfg.cmid, submissionid: cfg.submissionid, pdffile: selectedFile},
+            pct => showProgress(progressEl, pct)
+        );
     } catch (e) {
         showStatus(statusEl, e.message, 'danger');
         uploadBtn.disabled = false;
+        return;
     }
-};
 
-/**
- * Schedules a "Continue" button that reloads the page after a delay.
- * On reload, view.php reads the submission status from the DB and shows
- * the correct step automatically.
- *
- * @param {HTMLElement} statusEl - Status element used as insertion reference.
- * @param {number}      [delay]  - Milliseconds to wait before showing (default 15 000).
- */
-const scheduleRefreshButton = (statusEl, delay = 15000) => {
-    setTimeout(async () => {
-        const label = await getString('continue_to_step2', 'mod_aiviva');
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-success btn-lg mt-3 d-block mx-auto';
-        btn.textContent = label;
-        btn.addEventListener('click', () => {
-            btn.disabled = true;
-            window.location.reload();
-        });
-        statusEl?.parentNode?.insertBefore(btn, statusEl.nextSibling);
-    }, delay);
-};
-
-
-/**
- * Formats bytes into a human-readable string.
- *
- * @param {number} bytes - Number of bytes.
- * @returns {string} Formatted string.
- */
-const formatBytes = (bytes) => {
-    if (bytes < 1024) {
-        return bytes + ' B';
-    }
-    if (bytes < 1048576) {
-        return (bytes / 1024).toFixed(1) + ' KB';
-    }
-    return (bytes / 1048576).toFixed(1) + ' MB';
+    dropzone.classList.add('d-none');
+    uploadBtn.classList.add('d-none');
+    showStatus(statusEl, await getString('pdf_uploaded_analysing', 'mod_aiviva'), 'success');
+    await waitForStatusChange(cfg, ['draft', 'step1']);
+    window.location.reload();
 };

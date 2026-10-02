@@ -1,6 +1,6 @@
 # AI Viva — Moodle Activity Plugin (`mod_aiviva`)
 
-An AI-powered oral examination simulation plugin for Moodle 4.5 that guides students through a three-step academic defence: PDF document submission, screen-recorded presentation, and a live viva session with a virtual AI tribunal panel.
+An AI-powered oral examination for Moodle 4.5. Students go through a three-step academic defence: they submit a PDF document, record a presentation of it, and then defend it live before a panel of three AI examiners who speak to them and listen to their spoken answers. The AI proposes a grade with feedback; a teacher can review it before it is released.
 
 ---
 
@@ -8,161 +8,109 @@ An AI-powered oral examination simulation plugin for Moodle 4.5 that guides stud
 
 | Requirement | Minimum |
 |---|---|
-| Moodle | 4.5 (build 2024042200) |
+| Moodle | 4.5 |
 | PHP | 8.1+ |
-| Database | MySQL 8.0+ / MariaDB 10.6+ / PostgreSQL 13+ |
-| Browser | Chrome 90+, Edge 90+, Firefox 85+ (screen capture requires HTTPS) |
-| Server | HTTPS mandatory (Web Speech API and `getDisplayMedia` require a secure origin) |
-| OpenAI API key | Required — GPT-4o, Whisper, TTS endpoints |
-| FFmpeg (optional) | Recommended for server-side frame extraction from videos |
-| Moodle cron | Must be running regularly (used for background AI processing) |
+| Browser | Current Chrome, Edge, Firefox or Safari |
+| Server | HTTPS (browsers only allow screen and microphone capture on a secure origin) |
+| OpenAI API key | Required. Used for the language models, speech-to-text and text-to-speech |
+| Moodle cron | Running every minute (finishes AI jobs and closes abandoned sessions) |
+
+No server-side tools (FFmpeg, pdftotext) are needed.
 
 ---
 
 ## Installation
 
-### Method 1: Moodle Plugin Directory (recommended)
-
-1. Download the plugin zip from the Moodle Plugin Directory.
-2. In Moodle: **Site administration → Plugins → Install plugins**.
-3. Upload the zip and follow the on-screen prompts.
-4. Complete the database upgrade steps.
-
-### Method 2: Manual installation
-
-```bash
-# Unzip into the Moodle mod directory
-unzip mod_aiviva.zip -d /path/to/moodle/mod/aiviva
-
-# Fix permissions (Linux)
-chown -R www-data:www-data /path/to/moodle/mod/aiviva
-chmod -R 755 /path/to/moodle/mod/aiviva
-```
-
-Then visit **Site administration → Notifications** to run the database installer.
+1. Unzip into `mod/aiviva` or install the zip from **Site administration → Plugins → Install plugins**.
+2. Visit **Site administration → Notifications** to run the installer.
+3. Go to **Site administration → Plugins → Activity modules → AI Viva** and:
+   - enter the licence key (the plugin runs without one for a 15-day evaluation period);
+   - enter your OpenAI API key;
+   - choose which models teachers may select;
+   - review the storage limits and, if you wish, write your own privacy notice.
 
 ---
 
-## Post-Installation Configuration
+## Models
 
-1. **Configure the OpenAI API Key**
-   Go to **Site administration → Plugins → Activity modules → AI Viva**.
-   Enter your OpenAI API key in the "Primary OpenAI API Key" field.
-   The key is stored encrypted using Moodle's built-in encryption.
+| Use | Model |
+|---|---|
+| Document analysis, presentation analysis, tribunal, evaluation | GPT-6.1 Sol (default), GPT-6 Astra or GPT-6 Luna, chosen per activity and per step |
+| Speech-to-text | `gpt-transcribe` |
+| Examiner voices | `gpt-4o-mini-tts` (13 voices) |
 
-2. **Select available AI models**
-   Enable GPT-4o and/or GPT-4o mini based on your institution's budget.
-
-3. **Set storage limits**
-   Configure the maximum video file size and automatic purge schedule to manage disk usage.
-
-4. **Customise the GDPR notice**
-   Edit the privacy notice text to match your institution's data processing policies.
-
-5. **Configure the anonymisation salt** (optional)
-   A random salt is used when hashing student IDs before sending to OpenAI. You may want to set this to a long random string specific to your installation.
-
-6. **Verify cron is running**
-   AI analysis jobs run as Moodle adhoc tasks. Ensure `cron.php` or `cli/cron.php` runs at least every minute.
+Cost depends on the model and on the size of each student's work, because documents and transcripts are always sent in full. See the price list on the settings page and OpenAI's pricing page.
 
 ---
 
-## Creating an Activity
+## Creating an activity
 
 1. In a course, **Add an activity → AI Viva**.
-2. Configure the three steps:
-   - **Step 1**: What PDF the student should submit and your analysis prompt.
-   - **Step 2**: Presentation duration and video analysis prompt.
-   - **Step 3**: Configure the three tribunal members (name, role, personality, voice, avatar).
-3. Set grading options (maximum grade, workflow, notifications).
-4. Save and return to course.
+2. Set the number of attempts and, optionally, the opening and closing dates.
+3. Configure the three steps:
+   - **Step 1**: instructions, maximum PDF size and your analysis prompt.
+   - **Step 2**: instructions, maximum duration and your analysis prompt.
+   - **Step 3**: session duration, evaluation prompt and the three examiners (name, role, personality, voice, avatar or your own image).
+4. Set the grading options: maximum grade, the weight of each step in the final grade, whether grades are held for teacher review, and notifications.
+5. Optionally add extra safety rules (applied to every prompt) and the retention period for recordings.
+
+**Overrides** (in the activity's menu) change the attempt limit and dates for a single user or a group.
 
 ---
 
-## Student Workflow
+## Student workflow
 
-1. Student opens the activity and accepts the GDPR/privacy notice.
-2. **Step 1**: Uploads their PDF document. The AI analyses it in the background.
-3. **Step 2**: Records a screen presentation (10-second countdown, timer, auto-stop). The AI transcribes and analyses the video.
-4. **Step 3**: Participates in a live viva with the three AI tribunal members via TTS speech and push-to-talk voice responses.
-5. After the tribunal session ends, the AI generates a comprehensive grade and feedback.
+1. Read and accept the privacy notice. This starts an attempt.
+2. **Step 1**: upload the PDF. The page moves on by itself when the analysis is ready.
+3. **Step 2**: share the screen and microphone, record the presentation, review it, and submit it or record again.
+4. **Step 3**: test the microphone and start the session. Examiners speak in turn; to answer, the student presses a button, speaks, and presses it again. The session clock is kept by the server: it does not stop if the page is closed, and reloading the page resumes the same session.
+5. When the time is up the session closes and the evaluation is produced. If the student left, cron closes the session.
 
----
-
-## Teacher Workflow
-
-1. Navigate to **AI Viva → Submissions** to see all student submissions.
-2. Review each submission's PDF, video, and tribunal transcript.
-3. If grading workflow is enabled:
-   - Review the AI-generated grade and feedback.
-   - Adjust if needed and click **Publish grade** to release it to the student.
-4. If workflow is disabled, grades are published automatically.
+With several attempts allowed, a new attempt can be started once the previous one has been graded and released. The best released grade goes to the gradebook.
 
 ---
 
-## Browser Compatibility
+## Teacher workflow
 
-| Feature | Chrome | Firefox | Safari | Edge |
-|---|---|---|---|---|
-| Screen recording (`getDisplayMedia`) | ✅ | ✅ | ✅ 13+ | ✅ |
-| Web Speech API (STT) | ✅ | ⚠️ Partial | ✅ | ✅ |
-| Audio playback (TTS) | ✅ | ✅ | ✅ | ✅ |
+**AI Viva → View submissions** lists every attempt. For each one a teacher can:
 
-> **Note**: Web Speech API recognition may not be available in Firefox. In that case, student responses are captured as audio and transcribed server-side via Whisper.
+- read the PDF, watch the recording, read the presentation transcript and listen to each tribunal answer next to its transcript;
+- see the AI's score and feedback per step, and any academic-integrity concerns it raised;
+- edit the grade and feedback, **save** them as a draft, **publish** them to the student and the gradebook, or **withdraw** a published grade;
+- **regenerate** the AI analyses or the evaluation, for example after changing a prompt. A grade or feedback edited by a teacher is never overwritten by a regeneration, and the student is not notified again.
 
----
-
-## Security Notes
-
-- Student names are **never** sent to OpenAI. They are replaced with `STUDENT-<sha256hash>`.
-- API keys are stored encrypted using `\core\encryption`.
-- All file uploads are MIME-type and size validated on both client and server.
-- CSRF protection (`sesskey`) is enforced on all write operations.
-- Rate limiting prevents API abuse per user.
+If "Hold grades for teacher review" is off, the AI grade is released automatically.
 
 ---
 
-## Estimated OpenAI Costs (per student session)
+## What the evaluation takes into account
 
-| Component | GPT-4o | GPT-4o mini |
-|---|---|---|
-| PDF analysis | ~$0.05 | ~$0.01 |
-| Video analysis (10 min) | ~$0.10–$0.20 | ~$0.02–$0.05 |
-| Tribunal (10 min, ~8 turns) | ~$0.10–$0.15 | ~$0.02–$0.04 |
-| Whisper transcription (20 min) | ~$0.02 | ~$0.02 |
-| TTS (~8 responses, ~100 words each) | ~$0.02 | ~$0.02 |
-| **Total per student** | **~$0.30–$0.45** | **~$0.07–$0.14** |
+The evaluator receives, in full and without truncation: the original PDF, its analysis, the complete presentation transcript and analysis, and the complete tribunal conversation. It scores each step from 0 to 100; the final grade is the weighted average computed by the plugin with the weights set on the activity.
 
 ---
 
-## Frequently Asked Questions
+## Privacy and security
 
-**Q: Can I use this without HTTPS?**
-A: No. Screen recording (`getDisplayMedia`) and Web Speech API require a secure (HTTPS) origin. You must have a valid SSL certificate.
+- Sent to OpenAI: the PDF as submitted, the audio of the presentation and of each tribunal answer, screenshots of the presentation, and the resulting transcripts. The student's Moodle name and email are not sent; prompts use a pseudonymous code. The content itself may still identify the student, and the built-in privacy notice says so.
+- Students must accept the privacy notice before each attempt.
+- Recordings are deleted after the retention period set on the activity; the PDF, transcripts and grades are kept.
+- The Privacy API is implemented: export and deletion cover attempts, conversations, files and per-user overrides.
+- Every upload is checked by real content type and size; every state-changing request requires the session key; students can only act on their own latest attempt and only in the state that allows it.
+- The API key is stored in the plugin configuration, like other Moodle service credentials.
 
-**Q: What happens to student data sent to OpenAI?**
-A: Content is anonymised before sending (student name replaced with a hash). Per OpenAI's API terms, data is not used to train models. Files uploaded to the OpenAI Files API are deleted immediately after analysis.
+---
 
-**Q: The tribunal session is in English — can it be in another language?**
-A: Yes. Set the tribunal member prompts in the desired language and configure the Web Speech API language attribute (`lang`) to match. The AI will respond in the language of your prompts.
+## Development
 
-**Q: Can I add more than 3 tribunal members?**
-A: The current version supports exactly 3 members. This is a planned enhancement for a future release.
-
-**Q: Videos are large — how do I manage disk space?**
-A: Configure the **video retention period** in the global settings. Videos are automatically purged from the server after the specified number of days (default: 15). Database records and transcripts are retained.
-
-**Q: Why does cron need to run every minute?**
-A: AI analysis (PDF analysis, video analysis, evaluation) runs as background adhoc tasks to avoid browser timeouts. If cron runs infrequently, students may experience long waits between steps.
+```bash
+# From the Moodle root
+npx grunt amd --root=mod/aiviva
+vendor/bin/phpunit --testsuite mod_aiviva_testsuite
+vendor/bin/behat --tags=@mod_aiviva
+```
 
 ---
 
 ## License
 
-GNU General Public License v3 or later — see [LICENSE](https://www.gnu.org/copyleft/gpl.html).
-
----
-
-## Support & Bug Reports
-
-Please report issues at the [Moodle Plugin Directory](https://moodle.org/plugins) tracker or open a GitHub issue.
+GNU General Public License v3 or later — see `LICENSE`.

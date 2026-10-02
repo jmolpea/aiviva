@@ -15,22 +15,22 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Adhoc task: analyses a student PDF submission in the background.
+ * Adhoc task: analyse a submitted PDF.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_aiviva\task;
 
 /**
- * Runs PDF analysis via OpenAI in a background Moodle adhoc task,
- * avoiding HTTP request timeouts during upload.
+ * Runs the PDF analysis from cron when it could not be completed during the
+ * upload request.
  *
  * Custom data keys:
- *  - submissionid (int) — aiviva_submissions.id
- *  - cmid         (int) — course_modules.id
+ *  - submissionid (int) - aiviva_submissions.id
+ *  - cmid         (int) - course_modules.id
  */
 class analyze_pdf_task extends \core\task\adhoc_task {
     /**
@@ -46,63 +46,44 @@ class analyze_pdf_task extends \core\task\adhoc_task {
      * Executes the PDF analysis task.
      */
     public function execute(): void {
-        global $DB, $CFG;
+        global $DB;
 
-        $data         = $this->get_custom_data();
-        $submissionid = (int)($data->submissionid ?? 0);
-        $cmid         = (int)($data->cmid ?? 0);
+        $data       = $this->get_custom_data();
+        $submission = $DB->get_record('aiviva_submissions', ['id' => (int)($data->submissionid ?? 0)]);
+        $cm         = get_coursemodule_from_id('aiviva', (int)($data->cmid ?? 0));
 
-        if (!$submissionid || !$cmid) {
-            mtrace('aiviva analyze_pdf_task: missing submissionid or cmid');
+        // Nothing to do if the attempt was deleted or has already moved on.
+        if (!$submission || !$cm || $submission->status !== 'step1') {
             return;
         }
 
-        $submission = $DB->get_record('aiviva_submissions', ['id' => $submissionid]);
-        if (!$submission) {
-            mtrace('aiviva analyze_pdf_task: submission not found: ' . $submissionid);
-            return;
-        }
-
-        $cm     = get_coursemodule_from_id('aiviva', $cmid, 0, false, MUST_EXIST);
-        $aiviva = $DB->get_record('aiviva', ['id' => $cm->instance], '*', MUST_EXIST);
+        $aiviva  = $DB->get_record('aiviva', ['id' => $cm->instance], '*', MUST_EXIST);
         $context = \context_module::instance($cm->id);
+        $files   = get_file_storage()->get_area_files(
+            $context->id,
+            'mod_aiviva',
+            'submission_pdf',
+            $submission->id,
+            'id',
+            false
+        );
 
-        // Fetch the stored PDF file.
-        $fs    = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'mod_aiviva', 'submission_pdf', $submission->id, '', false);
-
-        if (empty($files)) {
-            mtrace('aiviva analyze_pdf_task: no PDF file found for submission ' . $submissionid);
-            $DB->set_field('aiviva_submissions', 'status', 'step2', ['id' => $submissionid]);
-            return;
+        $analysis = null;
+        if ($files) {
+            try {
+                $analysis = (new \mod_aiviva\api\pdf_analyzer())->analyse(reset($files), $aiviva, (int)$submission->userid);
+            } catch (\Throwable $e) {
+                // The student is not held back: the evaluator still reads the PDF itself,
+                // and a teacher can regenerate the analysis later.
+                mtrace('aiviva analyze_pdf_task: analysis failed for submission ' . $submission->id . ': ' . $e->getMessage());
+            }
         }
 
-        $file = reset($files);
-
-        try {
-            $analyzer = new \mod_aiviva\api\pdf_analyzer();
-            $analysis = $analyzer->analyse(
-                $file,
-                $aiviva->step1_prompt ?? '',
-                $aiviva->openai_model_pdf ?? 'gpt-4o',
-                $submission->userid
-            );
-
-            $DB->set_field('aiviva_submissions', 'pdf_analysis', $analysis, ['id' => $submissionid]);
-            $DB->set_field('aiviva_submissions', 'status', 'step2', ['id' => $submissionid]);
-            $DB->set_field('aiviva_submissions', 'timemodified', time(), ['id' => $submissionid]);
-
-            mtrace('aiviva analyze_pdf_task: completed for submission ' . $submissionid);
-        } catch (\moodle_exception $e) {
-            mtrace('aiviva analyze_pdf_task error: ' . $e->getMessage());
-            // Still advance to step2 so the student is not blocked.
-            $DB->set_field('aiviva_submissions', 'status', 'step2', ['id' => $submissionid]);
-            $DB->set_field(
-                'aiviva_submissions',
-                'pdf_analysis',
-                'Analysis unavailable: ' . $e->getMessage(),
-                ['id' => $submissionid]
-            );
-        }
+        $DB->update_record('aiviva_submissions', (object)[
+            'id'           => $submission->id,
+            'pdf_analysis' => $analysis,
+            'status'       => 'step2',
+            'timemodified' => time(),
+        ]);
     }
 }

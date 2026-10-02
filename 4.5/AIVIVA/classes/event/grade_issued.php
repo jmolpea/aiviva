@@ -18,7 +18,7 @@
  * Event fired when a grade is released to the student.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -53,7 +53,7 @@ class grade_issued extends \core\event\base {
      */
     public function get_description(): string {
         return "Grade was issued for submission with id '{$this->objectid}' " .
-               "to user with id '$this->userid'.";
+               "to user with id '$this->relateduserid'.";
     }
 
     /**

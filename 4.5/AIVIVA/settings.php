@@ -20,13 +20,36 @@
  * Displayed under: Site administration > Plugins > Activity modules > AI Viva
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
+    // Section: License.
+    $settings->add(new admin_setting_heading(
+        'mod_aiviva/license_heading',
+        get_string('license_heading', 'mod_aiviva'),
+        ''
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'mod_aiviva/license_key',
+        get_string('license_key', 'mod_aiviva'),
+        get_string('license_key_desc', 'mod_aiviva', \mod_aiviva\license\validator::TRIAL_DAYS),
+        '',
+        PARAM_RAW_TRIMMED
+    ));
+
+    // License status indicator — computed inline at render time (offline, no DB hit).
+    $licenseresult = \mod_aiviva\license\validator::get_settings_status();
+    $settings->add(new admin_setting_heading(
+        'mod_aiviva/license_status_display',
+        '',
+        html_writer::tag('span', $licenseresult['text'], ['class' => $licenseresult['css']])
+    ));
+
     // Section: API Keys.
     $settings->add(new admin_setting_heading(
         'mod_aiviva/apikeys_heading',
@@ -42,7 +65,7 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
-    // Secondary API Key (optional, for Whisper/TTS separation).
+    // Secondary API Key (optional, for transcription/TTS separation).
     $settings->add(new admin_setting_configpasswordunmask(
         'mod_aiviva/openai_apikey_secondary',
         get_string('settings_openai_apikey_secondary', 'mod_aiviva'),
@@ -57,20 +80,14 @@ if ($ADMIN->fulltree) {
         get_string('settings_models_heading_desc', 'mod_aiviva')
     ));
 
-    // Enable GPT-4o.
-    $settings->add(new admin_setting_configcheckbox(
-        'mod_aiviva/enable_gpt4o',
-        get_string('settings_enable_gpt4o', 'mod_aiviva'),
-        get_string('settings_enable_gpt4o_desc', 'mod_aiviva'),
-        1
-    ));
-
-    // Enable GPT-4o-mini.
-    $settings->add(new admin_setting_configcheckbox(
-        'mod_aiviva/enable_gpt4o_mini',
-        get_string('settings_enable_gpt4o_mini', 'mod_aiviva'),
-        get_string('settings_enable_gpt4o_mini_desc', 'mod_aiviva'),
-        1
+    // Models that teachers may choose from in the activity settings.
+    $modeloptions = \mod_aiviva\form\mod_form_helper::get_all_model_options();
+    $settings->add(new admin_setting_configmulticheckbox(
+        'mod_aiviva/enabled_models',
+        get_string('settings_enabled_models', 'mod_aiviva'),
+        get_string('settings_enabled_models_desc', 'mod_aiviva'),
+        array_fill_keys(array_keys($modeloptions), 1),
+        $modeloptions
     ));
 
     // Estimated cost notice.
@@ -100,24 +117,15 @@ if ($ADMIN->fulltree) {
         'mod_aiviva/safety_max_tokens',
         get_string('settings_safety_max_tokens', 'mod_aiviva'),
         get_string('settings_safety_max_tokens_desc', 'mod_aiviva'),
-        4096,
+        16000,
         PARAM_INT
     ));
 
-    // Anonymize student names in prompts (always on, display-only).
+    // How students are identified in prompts (display-only).
     $settings->add(new admin_setting_heading(
         'mod_aiviva/anonymize_heading',
         get_string('settings_anonymize_heading', 'mod_aiviva'),
         get_string('settings_anonymize_desc', 'mod_aiviva')
-    ));
-
-    // Salt for anonymisation hash.
-    $settings->add(new admin_setting_configtext(
-        'mod_aiviva/anonymize_salt',
-        get_string('settings_anonymize_salt', 'mod_aiviva'),
-        get_string('settings_anonymize_salt_desc', 'mod_aiviva'),
-        '',
-        PARAM_TEXT
     ));
 
     // Section: Storage.
@@ -145,15 +153,6 @@ if ($ADMIN->fulltree) {
         PARAM_INT
     ));
 
-    // Disk space warning threshold (GB).
-    $settings->add(new admin_setting_configtext(
-        'mod_aiviva/disk_warning_threshold_gb',
-        get_string('settings_disk_warning_threshold', 'mod_aiviva'),
-        get_string('settings_disk_warning_threshold_desc', 'mod_aiviva'),
-        10,
-        PARAM_INT
-    ));
-
     // Section: GDPR notice text.
     $settings->add(new admin_setting_heading(
         'mod_aiviva/gdpr_heading',
@@ -165,22 +164,6 @@ if ($ADMIN->fulltree) {
         'mod_aiviva/gdpr_notice_text',
         get_string('settings_gdpr_notice_text', 'mod_aiviva'),
         get_string('settings_gdpr_notice_text_desc', 'mod_aiviva'),
-        get_string('gdpr_default_notice', 'mod_aiviva'),
-        PARAM_RAW
-    ));
-
-    // Section: Server tools.
-    $settings->add(new admin_setting_heading(
-        'mod_aiviva/servertools_heading',
-        get_string('settings_servertools_heading', 'mod_aiviva'),
-        get_string('settings_servertools_heading_desc', 'mod_aiviva')
-    ));
-
-    // FFmpeg binary path (used for server-side video frame extraction).
-    $settings->add(new admin_setting_configtext(
-        'mod_aiviva/ffmpeg_path',
-        get_string('settings_ffmpeg_path', 'mod_aiviva'),
-        get_string('settings_ffmpeg_path_desc', 'mod_aiviva'),
         '',
         PARAM_RAW
     ));
@@ -197,7 +180,7 @@ if ($ADMIN->fulltree) {
         'mod_aiviva/api_timeout',
         get_string('settings_api_timeout', 'mod_aiviva'),
         get_string('settings_api_timeout_desc', 'mod_aiviva'),
-        120,
+        300,
         PARAM_INT
     ));
 
@@ -206,7 +189,7 @@ if ($ADMIN->fulltree) {
         'mod_aiviva/api_rate_limit',
         get_string('settings_api_rate_limit', 'mod_aiviva'),
         get_string('settings_api_rate_limit_desc', 'mod_aiviva'),
-        10,
+        30,
         PARAM_INT
     ));
 }

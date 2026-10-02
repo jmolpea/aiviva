@@ -18,7 +18,7 @@
  * Form for adding/editing user or group overrides.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -75,7 +75,8 @@ class override_form extends \moodleform {
         $mform->hideIf('groupid', 'overridetype', 'eq', 'user');
 
         // Maximum attempts.
-        $attemptsoptions = ['' => get_string('default')] + array_combine(range(1, 20), range(1, 20));
+        $attemptsoptions = ['' => get_string('default')] + array_combine(range(1, 20), range(1, 20))
+            + [0 => get_string('unlimited', 'mod_aiviva')];
         $mform->addElement('select', 'max_attempts', get_string('override_maxattempts', 'mod_aiviva'), $attemptsoptions);
 
         // Open date.
@@ -115,7 +116,7 @@ class override_form extends \moodleform {
         }
 
         // At least one override field must be set.
-        if (empty($data['max_attempts']) && empty($data['timeopen']) && empty($data['timeclose'])) {
+        if (($data['max_attempts'] ?? '') === '' && empty($data['timeopen']) && empty($data['timeclose'])) {
             $errors['max_attempts'] = get_string('required');
         }
 

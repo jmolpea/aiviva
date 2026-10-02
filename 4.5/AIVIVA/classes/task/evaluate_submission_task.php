@@ -15,22 +15,22 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Adhoc task: generates the final AI evaluation for a completed submission.
+ * Adhoc task: produce the final evaluation of a submission.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_aiviva\task;
 
 /**
- * Background task that calls the evaluator to produce the final grade
- * and feedback after the tribunal session ends.
+ * Calls the evaluator from cron when the evaluation could not be completed
+ * during the request that closed the tribunal.
  *
  * Custom data keys:
- *  - submissionid (int) — aiviva_submissions.id
- *  - cmid         (int) — course_modules.id
+ *  - submissionid (int) - aiviva_submissions.id
+ *  - cmid         (int) - course_modules.id
  */
 class evaluate_submission_task extends \core\task\adhoc_task {
     /**
@@ -44,41 +44,31 @@ class evaluate_submission_task extends \core\task\adhoc_task {
 
     /**
      * Executes the evaluation task.
+     *
+     * A failure is re-thrown so that Moodle retries the task later; meanwhile
+     * the attempt stays in "submitted" and a teacher can grade it by hand.
      */
     public function execute(): void {
         global $DB;
 
-        $data         = $this->get_custom_data();
-        $submissionid = (int)($data->submissionid ?? 0);
-        $cmid         = (int)($data->cmid ?? 0);
+        $data       = $this->get_custom_data();
+        $submission = $DB->get_record('aiviva_submissions', ['id' => (int)($data->submissionid ?? 0)]);
+        $cm         = get_coursemodule_from_id('aiviva', (int)($data->cmid ?? 0));
 
-        if (!$submissionid || !$cmid) {
-            mtrace('aiviva evaluate_submission_task: missing submissionid or cmid');
+        // Nothing to do if the attempt was deleted or has already been evaluated.
+        if (!$submission || !$cm || !in_array($submission->status, ['submitted', 'grading'])) {
             return;
         }
 
-        $submission = $DB->get_record('aiviva_submissions', ['id' => $submissionid]);
-        if (!$submission) {
-            mtrace('aiviva evaluate_submission_task: submission not found: ' . $submissionid);
-            return;
-        }
-
-        $cm     = get_coursemodule_from_id('aiviva', $cmid, 0, false, MUST_EXIST);
         $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
         $aiviva = $DB->get_record('aiviva', ['id' => $cm->instance], '*', MUST_EXIST);
 
-        // Set status to 'grading' so the student sees the pending state.
-        $DB->set_field('aiviva_submissions', 'status', 'grading', ['id' => $submissionid]);
-
+        $DB->set_field('aiviva_submissions', 'status', 'grading', ['id' => $submission->id]);
         try {
-            $evaluator = new \mod_aiviva\api\evaluator();
-            $evaluator->evaluate($submission, $aiviva, $course, $cm);
-
-            mtrace('aiviva evaluate_submission_task: completed for submission ' . $submissionid);
-        } catch (\moodle_exception $e) {
-            mtrace('aiviva evaluate_submission_task error: ' . $e->getMessage());
-            // Revert to submitted so the teacher can manually grade.
-            $DB->set_field('aiviva_submissions', 'status', 'submitted', ['id' => $submissionid]);
+            (new \mod_aiviva\api\evaluator())->evaluate($submission, $aiviva, $course, $cm);
+        } catch (\Throwable $e) {
+            $DB->set_field('aiviva_submissions', 'status', 'submitted', ['id' => $submission->id]);
+            throw $e;
         }
     }
 }

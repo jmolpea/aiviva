@@ -18,7 +18,7 @@
  * Restore structure step for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,6 +36,14 @@ class restore_aiviva_activity_structure_step extends restore_activity_structure_
         $userinfo = $this->get_setting_value('userinfo');
 
         $paths[] = new restore_path_element('aiviva', '/activity/aiviva');
+
+        // Overrides are always restored: group overrides travel even when user
+        // information is excluded from the backup. The handler drops any user
+        // override whose user did not come across.
+        $paths[] = new restore_path_element(
+            'aiviva_override',
+            '/activity/aiviva/overrides/override'
+        );
 
         if ($userinfo) {
             $paths[] = new restore_path_element(
@@ -63,15 +71,70 @@ class restore_aiviva_activity_structure_step extends restore_activity_structure_
         $oldid         = $data->id;
         $data->course  = $this->get_courseid();
 
-        // Ensure the API key is blank after restore (for security — must be re-entered).
-        $data->openai_apikey = '';
-
+        foreach (['timeopen', 'timeclose'] as $field) {
+            if (!empty($data->$field)) {
+                $data->$field = $this->apply_date_offset($data->$field);
+            }
+        }
         $data->timemodified = $this->apply_date_offset($data->timemodified);
         $data->timecreated  = $this->apply_date_offset($data->timecreated);
 
         $newid = $DB->insert_record('aiviva', $data);
         $this->apply_activity_instance($newid);
         $this->set_mapping('aiviva', $oldid, $newid);
+    }
+
+    /**
+     * Processes a restored user or group override element.
+     *
+     * An override is dropped rather than restored when the user or group it
+     * points at did not come across in this restore — writing it with a dangling
+     * id would silently grant the adjustment to whoever later occupies that id.
+     *
+     * @param array $data Data from the backup XML.
+     */
+    protected function process_aiviva_override(array $data): void {
+        global $DB;
+
+        $data         = (object)$data;
+        $data->aiviva = $this->get_new_parentid('aiviva');
+
+        if (!empty($data->userid)) {
+            $newuserid = $this->get_mappingid('user', $data->userid);
+            if (!$newuserid) {
+                return; // User not restored — drop this override.
+            }
+            $data->userid = $newuserid;
+        } else {
+            $data->userid = null;
+        }
+
+        if (!empty($data->groupid)) {
+            $newgroupid = $this->get_mappingid('group', $data->groupid);
+            if (!$newgroupid) {
+                return; // Group not restored — drop this override.
+            }
+            $data->groupid = $newgroupid;
+        } else {
+            $data->groupid = null;
+        }
+
+        // An override with neither a user nor a group targets nobody.
+        if ($data->userid === null && $data->groupid === null) {
+            return;
+        }
+
+        if (!empty($data->timeopen)) {
+            $data->timeopen = $this->apply_date_offset($data->timeopen);
+        }
+        if (!empty($data->timeclose)) {
+            $data->timeclose = $this->apply_date_offset($data->timeclose);
+        }
+        $data->timecreated  = $this->apply_date_offset($data->timecreated);
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+
+        unset($data->id);
+        $DB->insert_record('aiviva_overrides', $data);
     }
 
     /**
@@ -99,9 +162,13 @@ class restore_aiviva_activity_structure_step extends restore_activity_structure_
             $data->timegraded = $this->apply_date_offset($data->timegraded);
         }
 
-        // Clear file IDs — they will be re-linked via annotated files.
-        $data->pdf_fileid   = null;
-        $data->video_fileid = null;
+        if (!empty($data->tribunal_timestart)) {
+            $data->tribunal_timestart = $this->apply_date_offset($data->tribunal_timestart);
+        }
+
+        // File ids are only used as "has a file" flags (-1 = purged); the files themselves
+        // are restored by item id. The PDF id is informational and is not carried over.
+        $data->pdf_fileid = null;
 
         $newid = $DB->insert_record('aiviva_submissions', $data);
         $this->set_mapping('aiviva_submission', $oldid, $newid, true);
@@ -135,5 +202,7 @@ class restore_aiviva_activity_structure_step extends restore_activity_structure_
         $this->add_related_files('mod_aiviva', 'submission_pdf', 'aiviva_submission');
         $this->add_related_files('mod_aiviva', 'submission_video', 'aiviva_submission');
         $this->add_related_files('mod_aiviva', 'submission_audio', 'aiviva_submission');
+        $this->add_related_files('mod_aiviva', 'submission_frames', 'aiviva_submission');
+        $this->add_related_files('mod_aiviva', 'tribunal_audio', 'aiviva_submission');
     }
 }

@@ -18,7 +18,7 @@
  * Library functions for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -42,6 +42,7 @@ function aiviva_add_instance(stdClass $data, ?mod_aiviva_mod_form $mform = null)
     $id      = $DB->insert_record('aiviva', $data);
     $data->id = $id;
 
+    aiviva_save_avatar_files($data);
     aiviva_grade_item_update($data);
 
     return $id;
@@ -64,7 +65,9 @@ function aiviva_update_instance(stdClass $data, ?mod_aiviva_mod_form $mform = nu
 
     $DB->update_record('aiviva', $data);
 
+    aiviva_save_avatar_files($data);
     aiviva_grade_item_update($data);
+    aiviva_update_grades($DB->get_record('aiviva', ['id' => $data->id], '*', MUST_EXIST));
 
     return true;
 }
@@ -111,21 +114,10 @@ function aiviva_delete_instance(int $id): bool {
 
 /**
  * Pre-processes form data before saving to database.
- * Encrypts API keys and handles editor fields.
  *
  * @param stdClass $data Form data (modified in-place).
  */
 function aiviva_process_form_data(stdClass $data): void {
-    // Encrypt API key if provided.
-    if (!empty($data->openai_apikey)) {
-        try {
-            $data->openai_apikey = \core\encryption::encrypt($data->openai_apikey);
-        } catch (\moodle_exception $e) {
-            // Encryption not available; store as-is (should not happen in production).
-            debugging('aiviva: could not encrypt API key: ' . $e->getMessage(), DEBUG_DEVELOPER);
-        }
-    }
-
     // Convert editor fields to plain text storage.
     if (isset($data->step1_description_editor)) {
         $data->step1_description       = $data->step1_description_editor['text'];
@@ -137,12 +129,70 @@ function aiviva_process_form_data(stdClass $data): void {
     }
 
     // Ensure integer defaults.
-    $data->max_attempts           = isset($data->max_attempts) ? (int)$data->max_attempts : 2;
-    $data->group_submission       = isset($data->group_submission) ? (int)$data->group_submission : 0;
-    $data->grading_workflow       = isset($data->grading_workflow) ? (int)$data->grading_workflow : 0;
-    $data->notify_student         = isset($data->notify_student) ? (int)$data->notify_student : 1;
-    $data->video_purge_days       = isset($data->video_purge_days) ? (int)$data->video_purge_days : 15;
-    $data->safety_content_filter  = isset($data->safety_content_filter) ? (int)$data->safety_content_filter : 1;
+    $data->max_attempts     = isset($data->max_attempts) ? (int)$data->max_attempts : 2;
+    $data->grading_workflow = isset($data->grading_workflow) ? (int)$data->grading_workflow : 0;
+    $data->notify_student   = isset($data->notify_student) ? (int)$data->notify_student : 1;
+    $data->video_purge_days = isset($data->video_purge_days) ? max(0, (int)$data->video_purge_days) : 15;
+    $data->timeopen         = (int)($data->timeopen ?? 0);
+    $data->timeclose        = (int)($data->timeclose ?? 0);
+    $data->completionsubmit = (int)!empty($data->completionsubmit);
+
+    // The draft item ids of the avatar file managers are not activity data.
+    for ($member = 1; $member <= 3; $member++) {
+        $field = "tribunal_member_{$member}_avatar_custom";
+        if (isset($data->$field)) {
+            $data->{"{$field}_draft"} = (int)$data->$field;
+            $data->$field = null;
+        }
+    }
+}
+
+/**
+ * Stores the custom avatar images uploaded in the activity form.
+ *
+ * @param stdClass $data Form data, after {@see aiviva_process_form_data()}.
+ */
+function aiviva_save_avatar_files(stdClass $data): void {
+    if (empty($data->coursemodule)) {
+        return;
+    }
+    $context = context_module::instance($data->coursemodule);
+    for ($member = 1; $member <= 3; $member++) {
+        $draftfield = "tribunal_member_{$member}_avatar_custom_draft";
+        if (!empty($data->$draftfield)) {
+            file_save_draft_area_files(
+                $data->$draftfield,
+                $context->id,
+                'mod_aiviva',
+                'avatar_custom',
+                $member,
+                ['subdirs' => 0, 'maxfiles' => 1, 'accepted_types' => ['image']]
+            );
+        }
+    }
+}
+
+/**
+ * Returns the URL of a tribunal member's custom avatar image, if one was uploaded.
+ *
+ * @param context $context The module context.
+ * @param int     $member  Member number (1-3).
+ * @return moodle_url|null
+ */
+function aiviva_get_custom_avatar_url(context $context, int $member): ?moodle_url {
+    $files = get_file_storage()->get_area_files($context->id, 'mod_aiviva', 'avatar_custom', $member, 'id', false);
+    if (!$files) {
+        return null;
+    }
+    $file = reset($files);
+    return moodle_url::make_pluginfile_url(
+        $context->id,
+        'mod_aiviva',
+        'avatar_custom',
+        $member,
+        $file->get_filepath(),
+        $file->get_filename()
+    );
 }
 
 // Gradebook integration.
@@ -199,9 +249,10 @@ function aiviva_update_grades(stdClass $aiviva, int $userid = 0, bool $nullifnon
         return;
     }
 
+    // With several attempts, the best released grade is the one that counts.
     $sql = "SELECT s.userid,
-                   s.final_grade AS rawgrade,
-                   s.timegraded  AS dategraded
+                   MAX(s.final_grade) AS rawgrade,
+                   MAX(s.timegraded)  AS dategraded
               FROM {aiviva_submissions} s
              WHERE s.aiviva = :aiviva
                AND s.status = 'graded'
@@ -212,6 +263,7 @@ function aiviva_update_grades(stdClass $aiviva, int $userid = 0, bool $nullifnon
         $sql    .= ' AND s.userid = :userid';
         $params['userid'] = $userid;
     }
+    $sql .= ' GROUP BY s.userid';
 
     $grades = [];
     foreach ($DB->get_records_sql($sql, $params) as $row) {
@@ -260,7 +312,8 @@ function aiviva_grade_item_delete(stdClass $aiviva): int {
 function aiviva_get_coursemodule_info(stdClass $coursemodule): ?cached_cm_info {
     global $DB;
 
-    if (!$aiviva = $DB->get_record('aiviva', ['id' => $coursemodule->instance], 'id, name, intro, introformat')) {
+    $fields = 'id, name, intro, introformat, completionsubmit';
+    if (!$aiviva = $DB->get_record('aiviva', ['id' => $coursemodule->instance], $fields)) {
         return null;
     }
 
@@ -270,6 +323,11 @@ function aiviva_get_coursemodule_info(stdClass $coursemodule): ?cached_cm_info {
     if ($coursemodule->showdescription) {
         // Show the description in the course listing.
         $info->content = format_module_intro('aiviva', $aiviva, $coursemodule->id, false);
+    }
+
+    // Populate the custom completion rules, but only if the completion mode is 'automatic'.
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $info->customdata['customcompletionrules']['completionsubmit'] = $aiviva->completionsubmit;
     }
 
     return $info;
@@ -307,6 +365,7 @@ function aiviva_pluginfile(
         'submission_pdf',
         'submission_video',
         'submission_audio',
+        'tribunal_audio',
         'avatar_custom',
     ];
 
@@ -315,7 +374,7 @@ function aiviva_pluginfile(
     }
 
     // For student-uploaded files, verify capability.
-    if (in_array($filearea, ['submission_pdf', 'submission_video', 'submission_audio'])) {
+    if ($filearea !== 'intro' && $filearea !== 'avatar_custom') {
         $itemid = (int)array_shift($args);
 
         // Check the submission belongs to this module and user has access.
@@ -363,9 +422,6 @@ function aiviva_get_completion_active_rule_descriptions(stdClass $cm): array {
     if (!empty($aiviva['completionsubmit'])) {
         $descriptions['completionsubmit'] = get_string('completionsubmit', 'mod_aiviva');
     }
-    if (!empty($aiviva['completiongrade'])) {
-        $descriptions['completiongrade'] = get_string('completiongrade', 'mod_aiviva');
-    }
 
     return $descriptions;
 }
@@ -393,7 +449,7 @@ function aiviva_supports(string $feature): mixed {
         case FEATURE_GRADE_HAS_GRADE:
             return true;
         case FEATURE_GRADE_OUTCOMES:
-            return true;
+            return false;
         case FEATURE_BACKUP_MOODLE2:
             return true;
         case FEATURE_SHOW_DESCRIPTION:
@@ -453,14 +509,6 @@ function aiviva_notify_student_grade_released(
     message_send($message);
 }
 
-/**
- * Sends a notification to the teacher when a submission needs review.
- *
- * @param stdClass $aiviva      The aiviva instance.
- * @param stdClass $submission  The submission record.
- * @param stdClass $course      The course record.
- * @param stdClass $cm          The course module record.
- */
 // Navigation.
 
 /**

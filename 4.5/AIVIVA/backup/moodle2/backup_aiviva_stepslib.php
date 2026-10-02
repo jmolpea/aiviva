@@ -18,7 +18,7 @@
  * Backup structure step for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -40,7 +40,7 @@ class backup_aiviva_activity_structure_step extends backup_activity_structure_st
         $aiviva = new backup_nested_element('aiviva', ['id'], [
             'name', 'intro', 'introformat',
             'openai_model_pdf', 'openai_model_tribunal', 'openai_model_eval',
-            'max_attempts',
+            'max_attempts', 'timeopen', 'timeclose', 'step1_maxfilesize',
             'step1_description', 'step1_descriptionformat', 'step1_prompt',
             'step2_description', 'step2_descriptionformat', 'step2_prompt',
             'step2_duration', 'step2_maxfilesize',
@@ -51,10 +51,10 @@ class backup_aiviva_activity_structure_step extends backup_activity_structure_st
             'tribunal_member_2_voice', 'tribunal_member_2_avatar',
             'tribunal_member_3_name', 'tribunal_member_3_role', 'tribunal_member_3_prompt',
             'tribunal_member_3_voice', 'tribunal_member_3_avatar',
-            'grading_workflow', 'group_submission', 'groupingid',
+            'grading_workflow',
             'notify_student', 'video_purge_days',
             'safety_max_tokens', 'safety_content_filter', 'safety_extra_prompt',
-            'grade', 'completionsubmit', 'completiongrade', 'completionmingradeval',
+            'grade', 'weight_pdf', 'weight_video', 'weight_tribunal', 'completionsubmit',
             'timecreated', 'timemodified',
         ]);
 
@@ -65,8 +65,8 @@ class backup_aiviva_activity_structure_step extends backup_activity_structure_st
             'gdpr_consent', 'gdpr_consent_time',
             'pdf_fileid', 'pdf_analysis',
             'video_fileid', 'video_transcript', 'video_analysis',
-            'tribunal_transcript', 'tribunal_analysis',
-            'final_grade', 'final_feedback', 'grade_breakdown',
+            'tribunal_transcript', 'tribunal_analysis', 'tribunal_briefing', 'tribunal_timestart',
+            'ai_grade', 'final_grade', 'final_feedback', 'grade_breakdown',
             'grader_userid', 'workflow_state',
             'timecreated', 'timemodified', 'timesubmitted', 'timegraded',
         ]);
@@ -76,21 +76,47 @@ class backup_aiviva_activity_structure_step extends backup_activity_structure_st
             'turn_number', 'speaker', 'message_text', 'audio_fileid', 'timestamp',
         ]);
 
+        // User and group overrides (extra attempts, extended open/close dates).
+        // These are typically accessibility adjustments, so losing them on restore
+        // is a real data loss, not a cosmetic one.
+        $overrides = new backup_nested_element('overrides');
+        $override  = new backup_nested_element('override', ['id'], [
+            'userid', 'groupid', 'max_attempts',
+            'timeopen', 'timeclose',
+            'timecreated', 'timemodified',
+        ]);
+
         // Build the tree.
         $aiviva->add_child($submissions);
         $submissions->add_child($submission);
         $submission->add_child($messages);
         $messages->add_child($message);
+        $aiviva->add_child($overrides);
+        $overrides->add_child($override);
 
         // Data sources.
         $aiviva->set_source_table('aiviva', ['id' => backup::VAR_ACTIVITYID]);
+
+        // Group overrides are not user data, so they travel even when the user
+        // information setting is off. User overrides only travel with user data.
+        // Same approach as mod_quiz.
+        if ($includesubmissions) {
+            $override->set_source_table('aiviva_overrides', ['aiviva' => backup::VAR_PARENTID]);
+        } else {
+            $override->set_source_sql(
+                'SELECT * FROM {aiviva_overrides} WHERE aiviva = ? AND userid IS NULL',
+                [backup::VAR_PARENTID]
+            );
+        }
+
+        $override->annotate_ids('user', 'userid');
+        $override->annotate_ids('group', 'groupid');
 
         if ($includesubmissions) {
             $submission->set_source_table('aiviva_submissions', ['aiviva' => backup::VAR_PARENTID]);
             $message->set_source_table('aiviva_tribunal_messages', ['submission_id' => backup::VAR_PARENTID]);
             $submission->annotate_ids('user', 'userid');
             $submission->annotate_ids('user', 'grader_userid');
-            $message->annotate_files('mod_aiviva', 'submission_audio', 'id');
         }
 
         // File annotations for the activity.
@@ -100,6 +126,9 @@ class backup_aiviva_activity_structure_step extends backup_activity_structure_st
         if ($includesubmissions) {
             $submission->annotate_files('mod_aiviva', 'submission_pdf', 'id');
             $submission->annotate_files('mod_aiviva', 'submission_video', 'id');
+            $submission->annotate_files('mod_aiviva', 'submission_audio', 'id');
+            $submission->annotate_files('mod_aiviva', 'submission_frames', 'id');
+            $submission->annotate_files('mod_aiviva', 'tribunal_audio', 'id');
         }
 
         return $this->prepare_activity_structure($aiviva);

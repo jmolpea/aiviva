@@ -18,7 +18,7 @@
  * Cache definitions for mod_aiviva.
  *
  * @package    mod_aiviva
- * @copyright  2024 AI Viva Project
+ * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,6 +29,13 @@ $definitions = [
     'ratelimit' => [
         'mode'       => cache_store::MODE_APPLICATION,
         'ttl'        => 120, // 2 minutes; keys are keyed to minute windows.
+        'simplekeys' => true,
+        'simpledata' => true,
+    ],
+    // Opening words of a tribunal session, prepared before the student presses start.
+    'tribunal' => [
+        'mode'       => cache_store::MODE_APPLICATION,
+        'ttl'        => 7200,
         'simplekeys' => true,
         'simpledata' => true,
     ],
