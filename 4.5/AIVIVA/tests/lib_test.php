@@ -18,6 +18,10 @@ namespace mod_aiviva;
 
 use mod_aiviva\form\mod_form_helper;
 
+#[\PHPUnit\Framework\Attributes\CoversFunction('aiviva_update_grades')]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\form\mod_form_helper::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\completion\custom_completion::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\api\prompt_helper::class)]
 /**
  * Tests for lib.php, the model catalogue and custom completion.
  *
@@ -25,12 +29,14 @@ use mod_aiviva\form\mod_form_helper;
  * @category   test
  * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     ::aiviva_update_grades
+ * @covers     \mod_aiviva\form\mod_form_helper
+ * @covers     \mod_aiviva\completion\custom_completion
+ * @covers     \mod_aiviva\api\prompt_helper
  */
 final class lib_test extends \advanced_testcase {
     /**
      * Only released grades reach the gradebook, and the best attempt counts.
-     *
-     * @covers ::aiviva_update_grades
      */
     public function test_gradebook_gets_best_released_grade(): void {
         global $CFG, $DB;
@@ -76,8 +82,6 @@ final class lib_test extends \advanced_testcase {
 
     /**
      * Retired and disabled models are replaced by one that can be called.
-     *
-     * @covers \mod_aiviva\form\mod_form_helper
      */
     public function test_model_resolution(): void {
         $this->resetAfterTest();
@@ -97,8 +101,6 @@ final class lib_test extends \advanced_testcase {
 
     /**
      * Unknown voices fall back to the default.
-     *
-     * @covers \mod_aiviva\form\mod_form_helper
      */
     public function test_voice_resolution(): void {
         $this->assertSame('coral', mod_form_helper::resolve_voice('coral'));
@@ -109,8 +111,6 @@ final class lib_test extends \advanced_testcase {
 
     /**
      * The "complete all three steps" rule follows the attempt status.
-     *
-     * @covers \mod_aiviva\completion\custom_completion
      */
     public function test_custom_completion(): void {
         global $DB;
@@ -136,8 +136,6 @@ final class lib_test extends \advanced_testcase {
 
     /**
      * The pseudonym is stable, does not contain the user id, and depends on the site's secret.
-     *
-     * @covers \mod_aiviva\api\prompt_helper
      */
     public function test_pseudonym(): void {
         $this->resetAfterTest();

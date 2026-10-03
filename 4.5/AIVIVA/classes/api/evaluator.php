@@ -38,6 +38,12 @@ class evaluator {
     /** @var openai_client */
     private openai_client $client;
 
+    /** @var bool Whether the model received the original PDF in the last evaluation request. */
+    private bool $pdfattached = false;
+
+    /** @var bool Whether a PDF was stored for the attempt in the last evaluation request. */
+    private bool $pdfstored = false;
+
     /**
      * Constructor.
      */
@@ -67,10 +73,14 @@ class evaluator {
         // Gradebook and notification helpers live in lib.php, which cron does not load.
         require_once($CFG->dirroot . '/mod/aiviva/lib.php');
 
-        $context  = \context_module::instance($cm->id);
-        $weights  = manager::get_weights($aiviva);
-        $jsontext = $this->request_evaluation($submission, $aiviva, $context, $weights);
-        $result   = json_decode($jsontext, true);
+        $context    = \context_module::instance($cm->id);
+        $submission = $this->recover_missing_evidence($submission, $aiviva, $context);
+        $weights    = manager::get_weights($aiviva);
+        $jsontext   = $this->request_evaluation($submission, $aiviva, $context, $weights);
+        $result     = json_decode($jsontext, true);
+
+        // Work the student did but the AI could not read must not turn into a published zero.
+        $incomplete = $this->evidence_is_incomplete($submission);
 
         // The AI call can take minutes. Re-read the attempt so that a grade a teacher saved
         // or published in the meantime is seen, and preserved, below.
@@ -112,8 +122,8 @@ class evaluator {
             $update->timegraded     = $now;
         }
         if (!$isregrade) {
-            $update->workflow_state = $aiviva->grading_workflow ? 'inreview' : 'released';
-        } else if (!$aiviva->grading_workflow && $submission->workflow_state !== 'released') {
+            $update->workflow_state = ($aiviva->grading_workflow || $incomplete) ? 'inreview' : 'released';
+        } else if (!$aiviva->grading_workflow && !$incomplete && $submission->workflow_state !== 'released') {
             $update->workflow_state = 'released';
         }
         $DB->update_record('aiviva_submissions', $update);
@@ -146,6 +156,69 @@ class evaluator {
     }
 
     /**
+     * Produces any analysis that is missing although its source files are stored.
+     *
+     * An analysis can be missing because the AI service failed when the student
+     * uploaded the work. Evaluating without it would score that step as if the
+     * student had not done it, so it is attempted once more here.
+     *
+     * @param \stdClass $submission The submission record.
+     * @param \stdClass $aiviva     The activity record.
+     * @param \context  $context    The module context.
+     * @return \stdClass The submission record, re-read if anything was recovered.
+     */
+    private function recover_missing_evidence(\stdClass $submission, \stdClass $aiviva, \context $context): \stdClass {
+        global $DB;
+
+        $fs = get_file_storage();
+        $update = [];
+
+        if (trim((string)$submission->pdf_analysis) === '') {
+            $files = $fs->get_area_files($context->id, 'mod_aiviva', 'submission_pdf', $submission->id, 'id', false);
+            if ($files) {
+                try {
+                    $update['pdf_analysis'] = (new pdf_analyzer())->analyse(reset($files), $aiviva, (int)$submission->userid);
+                } catch (\Throwable $e) {
+                    debugging('aiviva evaluator: the document could not be analysed. ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
+        }
+
+        if (trim((string)$submission->video_transcript) === '' || trim((string)$submission->video_analysis) === '') {
+            $hasmedia = !$fs->is_area_empty($context->id, 'mod_aiviva', 'submission_audio', $submission->id)
+                || !$fs->is_area_empty($context->id, 'mod_aiviva', 'submission_video', $submission->id);
+            if ($hasmedia) {
+                try {
+                    $result = (new video_analyzer())->analyse($context, $submission, $aiviva);
+                    $update['video_transcript'] = $result['transcript'];
+                    $update['video_analysis']   = $result['analysis'];
+                } catch (\Throwable $e) {
+                    debugging('aiviva evaluator: the presentation could not be analysed. ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
+        }
+
+        if ($update) {
+            $DB->update_record('aiviva_submissions', (object)(['id' => $submission->id] + $update));
+        }
+        // The presentation transcript is saved by the analyser itself, even when the analysis then fails.
+        return $DB->get_record('aiviva_submissions', ['id' => $submission->id], '*', MUST_EXIST);
+    }
+
+    /**
+     * Tells whether the model had to evaluate without part of the student's work.
+     *
+     * @param \stdClass $submission The submission record, as used for the evaluation.
+     * @return bool True if a step the student completed reached the model with no evidence.
+     */
+    private function evidence_is_incomplete(\stdClass $submission): bool {
+        $nodocument = $this->pdfstored && !$this->pdfattached && trim((string)$submission->pdf_analysis) === '';
+        $nopresentation = !empty($submission->video_fileid) && trim((string)$submission->video_transcript) === '';
+
+        return $nodocument || $nopresentation;
+    }
+
+    /**
      * Asks the model for the evaluation JSON.
      *
      * The original PDF is attached when it is still stored; if that request
@@ -162,6 +235,7 @@ class evaluator {
         $model    = \mod_aiviva\form\mod_form_helper::resolve_model($aiviva->openai_model_eval ?? null);
         $system   = $this->system_prompt($aiviva, (int)$submission->userid, $weights);
         $evidence = $this->evidence($submission, $aiviva);
+        $this->pdfattached = false;
 
         $pdffiles = get_file_storage()->get_area_files(
             $context->id,
@@ -171,6 +245,7 @@ class evaluator {
             'id',
             false
         );
+        $this->pdfstored = (bool)$pdffiles;
         if ($pdffiles) {
             $pdf = reset($pdffiles);
             $content = [
@@ -193,6 +268,7 @@ class evaluator {
                 );
                 $text = openai_client::responses_output_text($response);
                 if ($text !== '') {
+                    $this->pdfattached = true;
                     return $text;
                 }
             } catch (\Throwable $e) {
@@ -267,6 +343,21 @@ PROMPT;
         $missing      = 'Not available.';
 
         $parts = [];
+        $assignment = trim(prompt_helper::activity_context($aiviva));
+        if ($assignment !== '') {
+            $parts[] = $assignment;
+        }
+        // The criteria the teacher wrote for each step, so that each score is judged against them.
+        $criteria = [
+            "Teacher's criteria for the document (step1_pdf)"       => $aiviva->step1_prompt ?? '',
+            "Teacher's criteria for the presentation (step2_video)" => $aiviva->step2_prompt ?? '',
+        ];
+        foreach ($criteria as $label => $text) {
+            $text = prompt_helper::clean($text);
+            if ($text !== '') {
+                $parts[] = $label . ":\n" . $text;
+            }
+        }
         if ($instructions !== '') {
             $parts[] = "Teacher's evaluation instructions:\n" . $instructions;
         }

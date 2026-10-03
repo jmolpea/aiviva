@@ -131,7 +131,20 @@ try {
             $videotypes = ['video/webm', 'video/mp4', 'video/ogg'];
             $audiotypes = ['audio/webm', 'video/webm', 'audio/ogg', 'audio/mp4', 'video/mp4', 'audio/x-m4a'];
             $video = aiviva_ajax_uploaded_file('videofile', $videotypes, (int)$aiviva->step2_maxfilesize);
-            $audio = aiviva_ajax_uploaded_file('audiofile', $audiotypes, 100, false);
+            // The audio track arrives in short consecutive parts, each within the transcription size limit.
+            $audios = [];
+            for ($part = 0; $part < \mod_aiviva\api\video_analyzer::MAX_AUDIO_PARTS; $part++) {
+                $audio = aiviva_ajax_uploaded_file(
+                    'audiofile' . $part,
+                    $audiotypes,
+                    \mod_aiviva\api\openai_client::MAX_AUDIO_MB,
+                    false
+                );
+                if (!$audio) {
+                    break;
+                }
+                $audios[] = $audio;
+            }
 
             $fs = get_file_storage();
             foreach (['submission_video', 'submission_audio', 'submission_frames'] as $filearea) {
@@ -148,9 +161,12 @@ try {
                 ['filearea' => 'submission_video', 'filename' => 'recording.' . $video['extension']] + $filerecord,
                 $video['tmp_name']
             );
-            if ($audio) {
+            foreach ($audios as $part => $audio) {
                 $fs->create_file_from_pathname(
-                    ['filearea' => 'submission_audio', 'filename' => 'audio.' . $audio['extension']] + $filerecord,
+                    [
+                        'filearea' => 'submission_audio',
+                        'filename' => sprintf('audio_%03d.%s', $part, $audio['extension']),
+                    ] + $filerecord,
                     $audio['tmp_name']
                 );
             }
@@ -247,7 +263,7 @@ try {
             }
 
             $audiotypes = ['audio/webm', 'video/webm', 'audio/ogg', 'audio/mp4', 'video/mp4', 'audio/x-m4a'];
-            $audio = aiviva_ajax_uploaded_file('audiofile', $audiotypes, 25);
+            $audio = aiviva_ajax_uploaded_file('audiofile', $audiotypes, \mod_aiviva\api\openai_client::MAX_AUDIO_MB);
             \core\session\manager::write_close();
             core_php_time_limit::raise(300);
 
@@ -352,6 +368,9 @@ try {
                 '*',
                 MUST_EXIST
             );
+            if (!manager::can_review_user($cm, $context, (int)$submission->userid)) {
+                throw new required_capability_exception($context, 'moodle/site:accessallgroups', 'nopermissions', '');
+            }
             if (!in_array($submission->status, ['submitted', 'grading', 'graded'])) {
                 throw new moodle_exception('error_regen_not_finished', 'mod_aiviva');
             }

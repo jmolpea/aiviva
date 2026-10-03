@@ -57,20 +57,18 @@ if ($ADMIN->fulltree) {
         get_string('settings_apikeys_heading_desc', 'mod_aiviva')
     ));
 
-    // Primary OpenAI API Key.
-    $settings->add(new admin_setting_configpasswordunmask(
+    // Primary OpenAI API Key, stored encrypted and never shown again once saved.
+    $settings->add(new admin_setting_encryptedpassword(
         'mod_aiviva/openai_apikey',
         get_string('settings_openai_apikey', 'mod_aiviva'),
-        get_string('settings_openai_apikey_desc', 'mod_aiviva'),
-        ''
+        get_string('settings_openai_apikey_desc', 'mod_aiviva')
     ));
 
     // Secondary API Key (optional, for transcription/TTS separation).
-    $settings->add(new admin_setting_configpasswordunmask(
+    $settings->add(new admin_setting_encryptedpassword(
         'mod_aiviva/openai_apikey_secondary',
         get_string('settings_openai_apikey_secondary', 'mod_aiviva'),
-        get_string('settings_openai_apikey_secondary_desc', 'mod_aiviva'),
-        ''
+        get_string('settings_openai_apikey_secondary_desc', 'mod_aiviva')
     ));
 
     // Section: Available Models.

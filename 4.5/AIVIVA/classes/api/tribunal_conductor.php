@@ -299,7 +299,7 @@ PROMPT;
         $response = $this->client->chat_completion(
             [
                 ['role' => 'system', 'content' => $system . prompt_helper::safety_instructions($this->aiviva)],
-                ['role' => 'user', 'content' => $evidence],
+                ['role' => 'user', 'content' => prompt_helper::activity_context($this->aiviva) . $evidence],
             ],
             $this->model(),
             ['max_tokens' => 4000],
@@ -443,6 +443,10 @@ PROMPT;
         }
 
         $context = '';
+        $assignment = trim(prompt_helper::activity_context($this->aiviva));
+        if ($assignment !== '') {
+            $context .= "\n\n" . $assignment;
+        }
         if (!empty($this->submission->tribunal_briefing)) {
             $context .= "\n\n[EXAMINER'S BRIEFING - use this as your primary guide]\n" . $this->submission->tribunal_briefing;
         }

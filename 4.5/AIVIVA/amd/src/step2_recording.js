@@ -18,7 +18,8 @@
  *
  * Three things are produced and uploaded together:
  *  - the screen recording with the mixed audio (for the teacher);
- *  - a small audio-only recording (what the server transcribes);
+ *  - a small audio-only recording, cut into short consecutive parts (what the
+ *    server transcribes: speech-to-text services cut long recordings short);
  *  - screenshots taken at regular intervals (what the AI looks at).
  *
  * @module     mod_aiviva/step2_recording
@@ -39,6 +40,9 @@ const COUNTDOWN_SECS = 5;
 /** @type {number} Upper bound on screenshots, matching the server's limit. */
 const MAX_FRAMES = 40;
 
+/** @type {number} Length of each audio part, in seconds. */
+const AUDIO_PART_SECS = 240;
+
 let cfg = {};
 let els = {};
 let displayStream = null;
@@ -46,8 +50,10 @@ let micStream = null;
 let audioNodes = [];
 let videoRecorder = null;
 let audioRecorder = null;
+let audioParts = [];
+let audioStops = [];
+let audioTimer = null;
 let videoChunks = [];
-let audioChunks = [];
 let frames = [];
 let recordingTimer = null;
 let frameTimer = null;
@@ -174,6 +180,28 @@ const mixAudio = () => {
 };
 
 /**
+ * Starts recording one more part of the audio track.
+ *
+ * Each part is a complete file of its own, so the server can transcribe them one by one.
+ *
+ * @param {MediaStream} stream  The mixed audio.
+ * @param {Object}      options MediaRecorder options.
+ * @returns {MediaRecorder} The recorder of the new part.
+ */
+const startAudioPart = (stream, options) => {
+    const recorder = new MediaRecorder(stream, options);
+    const chunks = [];
+    const index = audioStops.length;
+    recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data);
+    audioStops.push(new Promise(resolve => recorder.addEventListener('stop', () => {
+        audioParts[index] = new Blob(chunks, {type: (recorder.mimeType || 'audio/webm').split(';')[0]});
+        resolve();
+    }, {once: true})));
+    recorder.start(1000);
+    return recorder;
+};
+
+/**
  * Starts both recorders, the timer and the screenshot capture.
  */
 const beginRecording = async() => {
@@ -184,7 +212,8 @@ const beginRecording = async() => {
     }
 
     videoChunks = [];
-    audioChunks = [];
+    audioParts = [];
+    audioStops = [];
     frames = [];
 
     const mixed = mixAudio();
@@ -194,20 +223,23 @@ const beginRecording = async() => {
     const audioType = pickMimeType(['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']);
 
     videoRecorder = new MediaRecorder(combined, videoType ? {mimeType: videoType} : {});
-    audioRecorder = new MediaRecorder(mixed, {
-        ...(audioType ? {mimeType: audioType} : {}),
-        audioBitsPerSecond: 32000,
-    });
+    const audioOptions = {...(audioType ? {mimeType: audioType} : {}), audioBitsPerSecond: 32000};
     videoRecorder.ondataavailable = e => e.data.size > 0 && videoChunks.push(e.data);
-    audioRecorder.ondataavailable = e => e.data.size > 0 && audioChunks.push(e.data);
 
-    const stopped = Promise.all([videoRecorder, audioRecorder].map(
-        recorder => new Promise(resolve => recorder.addEventListener('stop', resolve, {once: true}))
-    ));
-    stopped.then(onRecordingStopped).catch(Notification.exception);
+    // Every audio part has been asked to stop by the time the video recorder reports it has.
+    new Promise(resolve => videoRecorder.addEventListener('stop', resolve, {once: true}))
+        .then(() => Promise.all(audioStops))
+        .then(onRecordingStopped)
+        .catch(Notification.exception);
 
     videoRecorder.start(1000);
-    audioRecorder.start(1000);
+    audioRecorder = startAudioPart(mixed, audioOptions);
+    // The next part starts before the previous one stops, so that no speech is lost in between.
+    audioTimer = setInterval(() => {
+        const previous = audioRecorder;
+        audioRecorder = startAudioPart(mixed, audioOptions);
+        previous.stop();
+    }, AUDIO_PART_SECS * 1000);
 
     els.indicator.classList.remove('d-none');
     els.stop.classList.remove('d-none');
@@ -256,6 +288,7 @@ const beginRecording = async() => {
 const stopRecording = () => {
     clearInterval(recordingTimer);
     clearInterval(frameTimer);
+    clearInterval(audioTimer);
 
     // One last screenshot of the final slide.
     if (videoRecorder && videoRecorder.state !== 'inactive' && frames.length < MAX_FRAMES) {
@@ -313,7 +346,7 @@ const resetToStart = () => {
  */
 const onRecordingStopped = async() => {
     const videoBlob = new Blob(videoChunks, {type: (videoRecorder.mimeType || 'video/webm').split(';')[0]});
-    const audioBlob = new Blob(audioChunks, {type: (audioRecorder.mimeType || 'audio/webm').split(';')[0]});
+    const audioBlobs = audioParts.filter(blob => blob && blob.size > 0);
     const sizeMb = videoBlob.size / 1048576;
 
     const [submitLabel, retryLabel, sizeLabel] = await Promise.all([
@@ -361,7 +394,7 @@ const onRecordingStopped = async() => {
         }
         submitBtn.disabled = true;
         retryBtn.disabled = true;
-        const uploaded = await uploadRecording(videoBlob, audioBlob);
+        const uploaded = await uploadRecording(videoBlob, audioBlobs);
         if (!uploaded) {
             submitBtn.disabled = false;
             retryBtn.disabled = false;
@@ -372,11 +405,11 @@ const onRecordingStopped = async() => {
 /**
  * Uploads the recording, then waits for the analysis to finish.
  *
- * @param {Blob} videoBlob The screen recording.
- * @param {Blob} audioBlob The audio-only recording.
+ * @param {Blob}   videoBlob  The screen recording.
+ * @param {Blob[]} audioBlobs The audio-only recording, in consecutive parts.
  * @returns {Promise<boolean>} False if the upload failed and can be retried.
  */
-const uploadRecording = async(videoBlob, audioBlob) => {
+const uploadRecording = async(videoBlob, audioBlobs) => {
     showStatus(els.status, await getString('uploading_video', 'mod_aiviva'), 'info');
 
     const extension = blob => (blob.type.includes('mp4') ? 'mp4' : 'webm');
@@ -386,9 +419,9 @@ const uploadRecording = async(videoBlob, audioBlob) => {
         videofile: [videoBlob, 'recording.' + extension(videoBlob)],
         frames: JSON.stringify(frames),
     };
-    if (audioBlob.size > 0) {
-        params.audiofile = [audioBlob, 'audio.' + extension(audioBlob)];
-    }
+    audioBlobs.forEach((blob, index) => {
+        params['audiofile' + index] = [blob, `audio_${index}.` + extension(blob)];
+    });
 
     try {
         await post('upload_video', params, pct => showProgress(els.progress, pct));

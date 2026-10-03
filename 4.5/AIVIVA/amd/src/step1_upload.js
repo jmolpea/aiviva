@@ -42,10 +42,10 @@ let selectedFile = null;
 export const init = (config) => {
     cfg = config;
 
-    const dropzone   = document.getElementById('aiviva_pdf_dropzone');
-    const fileInput  = document.getElementById('aiviva_pdf_input');
-    const uploadBtn  = document.getElementById('aiviva_pdf_upload_btn');
-    const statusEl   = document.getElementById('aiviva_pdf_status');
+    const dropzone = document.getElementById('aiviva_pdf_dropzone');
+    const fileInput = document.getElementById('aiviva_pdf_input');
+    const uploadBtn = document.getElementById('aiviva_pdf_upload_btn');
+    const statusEl = document.getElementById('aiviva_pdf_status');
 
     if (!dropzone || !fileInput || !uploadBtn) {
         return;

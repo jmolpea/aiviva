@@ -51,6 +51,9 @@ class openai_client {
     /** @var int Extra output tokens allowed on top of the visible answer, for the model's reasoning. */
     private const REASONING_TOKEN_RESERVE = 2048;
 
+    /** @var int Largest audio file, in MB, the speech-to-text service accepts in one request. */
+    public const MAX_AUDIO_MB = 25;
+
     /** @var string Primary API key (decrypted). */
     private string $apikey;
 
@@ -131,7 +134,47 @@ class openai_client {
         if ($instructions !== '') {
             $body['instructions'] = $instructions;
         }
-        return $this->request('POST', '/responses', $body);
+        return $this->request_complete('/responses', $body, 'max_output_tokens');
+    }
+
+    /**
+     * Sends a generation request and makes sure the answer was not cut short.
+     *
+     * A model stops mid-sentence when it reaches its output limit. Such an answer
+     * must never be stored as if it were whole, so the request is repeated once
+     * with twice the room, and if the answer is still cut an error is raised.
+     *
+     * @param string $path       URL path (relative to BASE_URL).
+     * @param array  $body       Request body.
+     * @param string $limitfield Name of the body field holding the output token limit.
+     * @return array Decoded response.
+     * @throws \moodle_exception on API error or if the answer is still incomplete.
+     */
+    private function request_complete(string $path, array $body, string $limitfield): array {
+        $response = $this->request('POST', $path, $body);
+        if (!self::is_truncated($response)) {
+            return $response;
+        }
+
+        $body[$limitfield] = 2 * (int)$body[$limitfield];
+        $response = $this->request('POST', $path, $body);
+        if (self::is_truncated($response)) {
+            throw new \moodle_exception('error_ai_truncated', 'mod_aiviva');
+        }
+        return $response;
+    }
+
+    /**
+     * Tells whether the model ran out of output tokens before finishing its answer.
+     *
+     * @param array $response Decoded Responses API or Chat Completions result.
+     * @return bool
+     */
+    public static function is_truncated(array $response): bool {
+        if (($response['status'] ?? '') === 'incomplete') {
+            return ($response['incomplete_details']['reason'] ?? '') === 'max_output_tokens';
+        }
+        return ($response['choices'][0]['finish_reason'] ?? '') === 'length';
     }
 
     /**
@@ -197,7 +240,7 @@ class openai_client {
             'reasoning_effort'      => self::REASONING_EFFORT,
         ], $options);
 
-        return $this->request('POST', '/chat/completions', $body);
+        return $this->request_complete('/chat/completions', $body, 'max_completion_tokens');
     }
 
     /**
@@ -511,7 +554,7 @@ class openai_client {
      */
     private function log_request(string $method, string $path, int $status): void {
         // Only in command-line runs (cron, tasks), where a trace helps and no user sees it.
-        if (CLI_SCRIPT && debugging('', DEBUG_DEVELOPER)) {
+        if (CLI_SCRIPT && !PHPUNIT_TEST && debugging('', DEBUG_DEVELOPER)) {
             mtrace(sprintf('aiviva openai: %s %s -> %d', $method, $path, $status));
         }
     }

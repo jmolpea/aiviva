@@ -22,6 +22,8 @@ global $CFG;
 require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\backup_aiviva_activity_structure_step::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\restore_aiviva_activity_structure_step::class)]
 /**
  * Backup and restore round trip.
  *

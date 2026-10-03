@@ -98,6 +98,7 @@ $ExcludeRelPatterns = @(
     "CLAUDE.md"
 )
 $ExcludeExtensions = @(".md")
+$KeepFiles = @("README.md", "CHANGELOG.md")
 
 # -----------------------------------------------------------------------
 # Collect files to include.
@@ -109,7 +110,8 @@ foreach ($file in $allFiles) {
     $rel  = $file.FullName.Substring($PluginDir.Length + 1)
     $skip = $false
 
-    if ($ExcludeExtensions -contains $file.Extension.ToLower()) { $skip = $true }
+    # Internal Markdown notes stay out; the README and the changelog are part of the package.
+    if ($ExcludeExtensions -contains $file.Extension.ToLower() -and $KeepFiles -notcontains $rel) { $skip = $true }
 
     if (-not $skip) {
         foreach ($pattern in $ExcludeRelPatterns) {

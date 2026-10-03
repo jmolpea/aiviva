@@ -48,12 +48,12 @@ let recorder = null;
 let answerChunks = [];
 let answerStartedAt = 0;
 let answerTimeout = null;
-let deadline = 0;          // Local timestamp (ms) at which the session time runs out.
+let deadline = 0; // Local timestamp (ms) at which the session time runs out.
 let clockTimer = null;
 let warned = false;
-let busy = false;          // True while a request or an examiner's turn is in progress.
+let busy = false; // True while a request or an examiner's turn is in progress.
 let ended = false;
-let prepared = null;       // Promise of the server-side preparation started on page load.
+let prepared = null; // Promise of the server-side preparation started on page load.
 
 /**
  * Initialises the tribunal module.
@@ -94,7 +94,7 @@ export const init = async(config) => {
     keys.forEach((key, i) => {
         str[key] = values[i];
     });
-    str.member_thinking = values[keys.length];
+    str.memberThinking = values[keys.length];
 
     // Have the server write the examiners' briefing and opening words now, while the
     // student reads the instructions and tests the microphone, so that "start" is instant.
@@ -329,7 +329,7 @@ const sendAnswer = async() => {
         appendToTranscript(0, '', data.answer);
         syncClock(data.remaining);
         setThinking(data.next.member, true);
-        showStatus(els.status, str.member_thinking.replace('{name}', data.next.name), 'info');
+        showStatus(els.status, str.memberThinking.replace('{name}', data.next.name), 'info');
 
         const reply = await post('tribunal_next', {cmid: cfg.cmid, submissionid: cfg.submissionid});
         setThinking(data.next.member, false);
