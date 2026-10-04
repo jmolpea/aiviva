@@ -39,6 +39,12 @@ const MAX_ANSWER_SECS = 300;
 /** @type {number} Answers shorter than this are treated as an accidental click. */
 const MIN_ANSWER_MS = 800;
 
+/** @type {number} How long an examiner's audio may take to start before it is requested again. */
+const AUDIO_START_TIMEOUT_MS = 8000;
+
+/** @type {number} How long an examiner's audio may stand still, once started, before the turn is taken as over. */
+const AUDIO_STALL_TIMEOUT_MS = 10000;
+
 let cfg = {};
 let els = {};
 let str = {};
@@ -372,23 +378,73 @@ const deliverTurn = async(turn) => {
  * @param {number} turn Turn number.
  * @returns {Promise<boolean>} True if the audio was played to the end.
  */
-const playTurnAudio = (turn) => new Promise(resolve => {
+const playTurnAudio = async(turn) => {
+    // A request that never gets an answer must not eat into the session clock: ask once more, then show the text only.
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const result = await playTurnAudioOnce(turn, attempt);
+        if (result !== 'silent') {
+            return result === 'played';
+        }
+    }
+    return false;
+};
+
+/**
+ * Makes one attempt at playing an examiner's turn.
+ *
+ * @param {number} turn    Turn number.
+ * @param {number} attempt Attempt number, which keeps the browser from reusing a failed request.
+ * @returns {Promise<string>} 'played' if it was heard, 'failed' if the server has no audio for it,
+ *                            'silent' if nothing arrived in time.
+ */
+const playTurnAudioOnce = (turn, attempt) => new Promise(resolve => {
     const params = new URLSearchParams({
         action: 'tribunal_speech',
         cmid: cfg.cmid,
         submissionid: cfg.submissionid,
         turn: turn,
+        attempt: attempt,
         sesskey: Config.sesskey,
     });
     const audio = new Audio(`${Config.wwwroot}/mod/aiviva/ajax.php?${params.toString()}`);
     let started = false;
+    let lastTime = -1;
+    let lastProgress = Date.now();
+    let watchdog = null;
+    let finished = false;
+
+    const finish = (result) => {
+        if (finished) {
+            return;
+        }
+        finished = true;
+        clearInterval(watchdog);
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        resolve(result);
+    };
+
+    // The stream normally starts within two seconds, and then keeps advancing until it ends.
+    watchdog = setInterval(() => {
+        if (audio.currentTime !== lastTime) {
+            lastTime = audio.currentTime;
+            lastProgress = Date.now();
+        } else if (!started && Date.now() - lastProgress > AUDIO_START_TIMEOUT_MS) {
+            finish('silent');
+        } else if (started && Date.now() - lastProgress > AUDIO_STALL_TIMEOUT_MS) {
+            finish('played');
+        }
+    }, 500);
+
     audio.addEventListener('playing', () => {
         started = true;
+        lastProgress = Date.now();
     });
-    audio.addEventListener('ended', () => resolve(true));
+    audio.addEventListener('ended', () => finish('played'));
     // An error before anything was heard falls back to a reading pause; afterwards the turn is simply over.
-    audio.addEventListener('error', () => resolve(started));
-    audio.play().catch(() => resolve(false));
+    audio.addEventListener('error', () => finish(started ? 'played' : 'failed'));
+    audio.play().catch(() => finish('failed'));
 });
 
 /**

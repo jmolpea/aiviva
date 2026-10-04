@@ -7,7 +7,7 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.0] — 2026-10-03 (version 2026100300)
+## [1.2.0] — 2026-10-04 (version 2026100301)
 
 ### Compatibility
 
@@ -16,6 +16,7 @@ This project uses [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Saving a user or group override failed with a "record not found" error.
+- An examiner's audio that never arrived left the student waiting while the session clock ran. It is now requested again after eight seconds and, failing that, the question is shown as text; audio that stalls midway no longer blocks the session.
 
 ### Evaluation
 
