@@ -79,7 +79,7 @@ function aiviva_update_instance(stdClass $data, ?mod_aiviva_mod_form $mform = nu
  * @return bool True on success.
  */
 function aiviva_delete_instance(int $id): bool {
-    global $DB, $CFG;
+    global $DB;
 
     if (!$aiviva = $DB->get_record('aiviva', ['id' => $id])) {
         return false;
@@ -386,6 +386,9 @@ function aiviva_pluginfile(
         // Students can only access their own files; teachers can access all.
         if ($submission->userid != $USER->id) {
             require_capability('mod/aiviva:viewallsubmissions', $context);
+            if (!\mod_aiviva\local\manager::can_review_user($cm, $context, (int)$submission->userid)) {
+                return false;
+            }
         }
     } else {
         $itemid = (int)array_shift($args);
@@ -477,7 +480,7 @@ function aiviva_notify_student_grade_released(
     stdClass $course,
     stdClass $cm
 ): void {
-    global $DB, $CFG;
+    global $DB;
 
     if (!$aiviva->notify_student) {
         return;

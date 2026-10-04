@@ -18,6 +18,7 @@ namespace mod_aiviva;
 
 use mod_aiviva\local\manager;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\local\manager::class)]
 /**
  * Tests for the submission lifecycle rules.
  *

@@ -127,6 +127,39 @@ class prompt_helper {
     }
 
     /**
+     * Describes the assignment the student was given, as written by the teacher.
+     *
+     * Without it the model would judge the work without knowing what was asked.
+     *
+     * @param \stdClass $aiviva The activity record.
+     * @param int       $step   1 or 2 to include only that step's instructions, 0 for both.
+     * @return string Prompt block ending with a blank line, or '' if the teacher wrote nothing.
+     */
+    public static function activity_context(\stdClass $aiviva, int $step = 0): string {
+        $lines = [];
+        $name = self::clean($aiviva->name ?? '');
+        if ($name !== '') {
+            $lines[] = 'Activity: ' . $name;
+        }
+
+        $texts = ['Activity description' => ['intro', 'introformat']];
+        if ($step === 0 || $step === 1) {
+            $texts['Instructions given to the student for the document'] = ['step1_description', 'step1_descriptionformat'];
+        }
+        if ($step === 0 || $step === 2) {
+            $texts['Instructions given to the student for the presentation'] = ['step2_description', 'step2_descriptionformat'];
+        }
+        foreach ($texts as $label => [$field, $formatfield]) {
+            $text = self::clean(content_to_text((string)($aiviva->$field ?? ''), $aiviva->$formatfield ?? FORMAT_HTML));
+            if ($text !== '') {
+                $lines[] = $label . ":\n" . $text;
+            }
+        }
+
+        return $lines ? "The assignment, as set by the teacher:\n" . implode("\n\n", $lines) . "\n\n" : '';
+    }
+
+    /**
      * Wraps untrusted, student-originated text in delimiters.
      *
      * @param string $label Upper-case label, e.g. 'STUDENT DOCUMENT'.

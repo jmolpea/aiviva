@@ -398,6 +398,13 @@ if (!$finished) {
     exit;
 }
 
+// Work the AI could not read: the grade is held until a teacher has looked at it.
+$nodocument     = $pdffiles && trim((string)$submission->pdf_analysis) === '';
+$nopresentation = !empty($submission->video_fileid) && trim((string)$submission->video_transcript) === '';
+if ($nodocument || $nopresentation) {
+    echo $OUTPUT->notification(get_string('evidence_missing', 'mod_aiviva'), \core\output\notification::NOTIFY_WARNING);
+}
+
 // Regenerate AI analysis.
 echo html_writer::start_div('card card-body mb-3 border-warning');
 echo html_writer::tag('h5', get_string('regen_heading', 'mod_aiviva'));

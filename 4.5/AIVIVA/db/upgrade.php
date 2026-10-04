@@ -181,5 +181,30 @@ function xmldb_aiviva_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026100201, 'aiviva');
     }
 
+    if ($oldversion < 2026100300) {
+        // The per-activity API key was never used: keys are a site setting.
+        $table = new xmldb_table('aiviva');
+        $field = new xmldb_field('openai_apikey');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // API keys saved as plain text are now stored encrypted.
+        foreach (['openai_apikey', 'openai_apikey_secondary'] as $name) {
+            $key = (string)get_config('mod_aiviva', $name);
+            if ($key === '' || preg_match('/^(sodium|openssl-aes-256-ctr):/', $key)) {
+                continue;
+            }
+            try {
+                set_config($name, \core\encryption::encrypt($key), 'mod_aiviva');
+            } catch (\Throwable $e) {
+                // No encryption key can be created on this site: the key keeps working as it is.
+                debugging('aiviva: the API key could not be encrypted: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2026100300, 'aiviva');
+    }
+
     return true;
 }

@@ -36,17 +36,11 @@ class override_form extends \moodleform {
      * Defines the form fields.
      */
     public function definition(): void {
-        global $DB;
-
         $mform   = $this->_form;
-        $cmid    = $this->_customdata['cmid'];
         $aiviva  = $this->_customdata['aiviva'];
         $context = $this->_customdata['context'];
 
-        $mform->addElement('hidden', 'id', 0);
-        $mform->addElement('hidden', 'cmid', $cmid);
-        $mform->setType('id', PARAM_INT);
-        $mform->setType('cmid', PARAM_INT);
+        // The course module, the action and the override being edited travel in the form's URL.
 
         // Override type.
         $types = [

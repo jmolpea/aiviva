@@ -82,6 +82,7 @@ if ($action === 'add' || ($action === 'edit' && $overrideid)) {
 
     if ($override) {
         $formdata = clone $override;
+        unset($formdata->id);
         $formdata->overridetype = $override->userid ? 'user' : 'group';
         $form->set_data($formdata);
     }

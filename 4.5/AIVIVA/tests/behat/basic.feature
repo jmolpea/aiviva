@@ -46,3 +46,33 @@ Feature: Basic use of the AI Viva activity
     When I am on the "Closed viva" "aiviva activity" page logged in as student1
     Then I should see "This activity is closed"
     And I should not see "Privacy Notice"
+
+  Scenario: A teacher creates an activity from the settings form
+    Given I log in as "teacher1"
+    When I add a aiviva activity to course "Course 1" section "1" and I fill the form with:
+      | Activity name | Capstone viva |
+    And I am on the "Capstone viva" "aiviva activity" page
+    Then I should see "View submissions"
+
+  Scenario: A teacher gives a student extra attempts with an override
+    Given I am on the "Thesis viva" "aiviva activity" page logged in as teacher1
+    And I navigate to "User/Group Overrides" in current page administration
+    When I follow "Add override"
+    And I set the following fields to these values:
+      | User             | Sam Student (student1@example.com) |
+      | Maximum attempts | 5                                  |
+    And I press "Save changes"
+    Then I should see "Override saved"
+    And I should see "Sam Student"
+    When I follow "Edit"
+    And I set the field "Maximum attempts" to "3"
+    And I press "Save changes"
+    Then I should see "Override saved"
+    When I am on the "Thesis viva" "aiviva activity" page logged in as student1
+    Then I should see "Attempt 0 of 3"
+
+  Scenario: An administrator sees the licence status on the settings page
+    Given I log in as "admin"
+    When I navigate to "Plugins > Activity modules > AI Viva" in site administration
+    Then I should see "Evaluation period"
+    And I should see "Primary OpenAI API Key"

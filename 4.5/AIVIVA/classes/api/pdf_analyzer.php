@@ -55,7 +55,7 @@ class pdf_analyzer {
      */
     public function analyse(\stored_file $file, \stdClass $aiviva, int $userid): string {
         $model   = \mod_aiviva\form\mod_form_helper::resolve_model($aiviva->openai_model_pdf ?? null);
-        $prompt  = prompt_helper::clean($aiviva->step1_prompt ?? '');
+        $prompt  = trim(prompt_helper::activity_context($aiviva, 1) . prompt_helper::clean($aiviva->step1_prompt ?? ''));
         $tmpdir  = make_request_directory();
         $tmppath = $tmpdir . '/document.pdf';
         $file->copy_content_to($tmppath);

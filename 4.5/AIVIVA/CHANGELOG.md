@@ -7,6 +7,32 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.0] — 2026-10-04 (version 2026100302)
+
+### Compatibility
+
+- Supported on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3 (tested against the 5.3.0 release).
+
+### Fixed
+
+- Saving a user or group override failed with a "record not found" error.
+- The poster image of the first built-in avatar was missing on case-sensitive servers (file name in mixed case).
+- An examiner's audio that never arrived left the student waiting while the session clock ran. It is now requested again after eight seconds and, failing that, the question is shown as text; audio that stalls midway no longer blocks the session.
+
+### Evaluation
+
+- The presentation audio is recorded and transcribed in consecutive four-minute parts, so long presentations are transcribed in full instead of being rejected or cut short by the speech-to-text service.
+- The presentation transcript is kept even if the analysis that follows it fails.
+- AI answers that stop at the output limit are detected, retried with more room, and never stored incomplete.
+- The models now receive the assignment itself (activity description and the instructions of each step), and the evaluator also receives the teacher's criteria for the document and the presentation.
+- An analysis that is missing when the evaluation runs is attempted again first. If part of the student's work still could not be read, the grade is held for teacher review instead of being released automatically.
+
+### Security and privacy
+
+- OpenAI API keys are stored encrypted; keys saved by earlier versions are encrypted on upgrade.
+- Regenerating an attempt and downloading its files now honour separate groups, like the submissions page.
+- The unused per-activity API key column has been removed.
+
 ## [1.1.0] — 2026-10-02 (version 2026100202)
 
 ### Tribunal fluency

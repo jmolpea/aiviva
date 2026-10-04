@@ -1,6 +1,6 @@
 # AI Viva — Moodle Activity Plugin (`mod_aiviva`)
 
-An AI-powered oral examination for Moodle 4.5. Students go through a three-step academic defence: they submit a PDF document, record a presentation of it, and then defend it live before a panel of three AI examiners who speak to them and listen to their spoken answers. The AI proposes a grade with feedback; a teacher can review it before it is released.
+An AI-powered oral examination for Moodle 4.5 to 5.3. Students go through a three-step academic defence: they submit a PDF document, record a presentation of it, and then defend it live before a panel of three AI examiners who speak to them and listen to their spoken answers. The AI proposes a grade with feedback; a teacher can review it before it is released.
 
 ---
 
@@ -8,8 +8,8 @@ An AI-powered oral examination for Moodle 4.5. Students go through a three-step 
 
 | Requirement | Minimum |
 |---|---|
-| Moodle | 4.5 |
-| PHP | 8.1+ |
+| Moodle | 4.5, 5.0, 5.1, 5.2 or 5.3 |
+| PHP | 8.1+ (as required by your Moodle version) |
 | Browser | Current Chrome, Edge, Firefox or Safari |
 | Server | HTTPS (browsers only allow screen and microphone capture on a secure origin) |
 | OpenAI API key | Required. Used for the language models, speech-to-text and text-to-speech |
@@ -85,7 +85,16 @@ If "Hold grades for teacher review" is off, the AI grade is released automatical
 
 ## What the evaluation takes into account
 
-The evaluator receives, in full and without truncation: the original PDF, its analysis, the complete presentation transcript and analysis, and the complete tribunal conversation. It scores each step from 0 to 100; the final grade is the weighted average computed by the plugin with the weights set on the activity.
+The evaluator receives, in full and without truncation: the assignment as you wrote it (activity description, the instructions of each step and your prompts for each step), the original PDF, its analysis, the complete presentation transcript and analysis, and the complete tribunal conversation. It scores each step from 0 to 100; the final grade is the weighted average computed by the plugin with the weights set on the activity.
+
+Safeguards against partial evaluations:
+
+- The presentation audio is recorded in consecutive four-minute parts and each part is transcribed separately, because speech-to-text services limit the size and length of a request and may cut long transcripts short.
+- An AI answer that stops because it reached its length limit is never stored: the request is repeated with more room, and fails visibly if it is still cut.
+- If an analysis is missing when the evaluation runs (for example, the AI service failed when the student uploaded the work), it is attempted again first.
+- If part of the student's work still could not be read, the grade is not released automatically, whatever the activity's setting: it is held for a teacher, who is notified and sees a warning on the attempt.
+
+Limits of the AI service to bear in mind: OpenAI limits the number of pages and the size of the PDFs it reads in one request (see its file-input documentation for the current figures). A document over those limits falls back to a plain-text extraction, which is less reliable; review those attempts by hand.
 
 ---
 
@@ -96,7 +105,8 @@ The evaluator receives, in full and without truncation: the original PDF, its an
 - Recordings are deleted after the retention period set on the activity; the PDF, transcripts and grades are kept.
 - The Privacy API is implemented: export and deletion cover attempts, conversations, files and per-user overrides.
 - Every upload is checked by real content type and size; every state-changing request requires the session key; students can only act on their own latest attempt and only in the state that allows it.
-- The API key is stored in the plugin configuration, like other Moodle service credentials.
+- The API keys are stored encrypted with Moodle's encryption API and are never shown again once saved.
+- Teachers restricted to their own groups can only see, download and regenerate their groups' attempts.
 
 ---
 
@@ -114,3 +124,7 @@ vendor/bin/behat --tags=@mod_aiviva
 ## License
 
 GNU General Public License v3 or later — see `LICENSE`.
+
+### Media
+
+The avatar images and videos in `pix/avatars/` were generated with AI tools for this plugin. They do not depict any real person and are distributed under the same licence as the rest of the plugin.

@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aiviva';
-$plugin->version   = 2026100202;   // Hardening release.
+$plugin->version   = 2026100302;
 $plugin->requires  = 2024100700;   // Moodle 4.5.0.
-$plugin->supported = [405, 405];   // Moodle 4.5 LTS only.
+$plugin->supported = [405, 503];   // Moodle 4.5 LTS to 5.3 LTS.
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.1.0';
+$plugin->release   = '1.2.0';
