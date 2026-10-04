@@ -124,3 +124,7 @@ vendor/bin/behat --tags=@mod_aiviva
 ## License
 
 GNU General Public License v3 or later — see `LICENSE`.
+
+### Media
+
+The avatar images and videos in `pix/avatars/` were generated with AI tools for this plugin. They do not depict any real person and are distributed under the same licence as the rest of the plugin.

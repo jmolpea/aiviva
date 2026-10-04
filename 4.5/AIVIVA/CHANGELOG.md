@@ -7,15 +7,16 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.0] — 2026-10-04 (version 2026100301)
+## [1.2.0] — 2026-10-04 (version 2026100302)
 
 ### Compatibility
 
-- Supported on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3.
+- Supported on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3 (tested against the 5.3.0 release).
 
 ### Fixed
 
 - Saving a user or group override failed with a "record not found" error.
+- The poster image of the first built-in avatar was missing on case-sensitive servers (file name in mixed case).
 - An examiner's audio that never arrived left the student waiting while the session clock ran. It is now requested again after eight seconds and, failing that, the question is shown as text; audio that stalls midway no longer blocks the session.
 
 ### Evaluation
