@@ -19,6 +19,7 @@ namespace mod_aiviva;
 use mod_aiviva\form\mod_form_helper;
 
 #[\PHPUnit\Framework\Attributes\CoversFunction('aiviva_update_grades')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('aiviva_notify_teacher_submission_ready')]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\form\mod_form_helper::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\completion\custom_completion::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_aiviva\api\prompt_helper::class)]
@@ -30,6 +31,7 @@ use mod_aiviva\form\mod_form_helper;
  * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     ::aiviva_update_grades
+ * @covers     ::aiviva_notify_teacher_submission_ready
  * @covers     \mod_aiviva\form\mod_form_helper
  * @covers     \mod_aiviva\completion\custom_completion
  * @covers     \mod_aiviva\api\prompt_helper
@@ -132,6 +134,42 @@ final class lib_test extends \advanced_testcase {
 
         $DB->set_field('aiviva_submissions', 'status', 'submitted', ['id' => $submission->id]);
         $this->assertSame(COMPLETION_COMPLETE, $completion->get_state('completionsubmit'));
+    }
+
+    /**
+     * In separate groups mode, only the teachers who can review the student are told about the attempt.
+     */
+    public function test_review_notification_respects_separate_groups(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/mod/aiviva/lib.php');
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course    = $generator->create_course(['groupmode' => SEPARATEGROUPS, 'groupmodeforce' => 1]);
+        $student   = $generator->create_and_enrol($course, 'student');
+        $mine      = $generator->create_and_enrol($course, 'teacher');
+        $other     = $generator->create_and_enrol($course, 'teacher');
+        $editing   = $generator->create_and_enrol($course, 'editingteacher');
+        $group     = $generator->create_group(['courseid' => $course->id]);
+        $othergroup = $generator->create_group(['courseid' => $course->id]);
+        groups_add_member($group, $student);
+        groups_add_member($group, $mine);
+        groups_add_member($othergroup, $other);
+
+        $module = $generator->create_module('aiviva', ['course' => $course->id]);
+        $aiviva = $DB->get_record('aiviva', ['id' => $module->id], '*', MUST_EXIST);
+        $cm     = get_coursemodule_from_instance('aiviva', $aiviva->id, $course->id, false, MUST_EXIST);
+        $submission = $generator->get_plugin_generator('mod_aiviva')->create_submission([
+            'aiviva' => $aiviva->id, 'userid' => $student->id, 'status' => 'graded', 'workflow_state' => 'inreview',
+        ]);
+
+        $sink = $this->redirectMessages();
+        aiviva_notify_teacher_submission_ready($aiviva, $submission, $course, $cm);
+        $recipients = array_map(static fn($message) => (int)$message->useridto, $sink->get_messages());
+        $sink->close();
+
+        // The teacher of the student's group, and the editing teacher, who can access all groups.
+        $this->assertEqualsCanonicalizing([(int)$mine->id, (int)$editing->id], $recipients);
     }
 
     /**

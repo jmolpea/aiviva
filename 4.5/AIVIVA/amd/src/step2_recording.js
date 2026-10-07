@@ -372,7 +372,7 @@ const onRecordingStopped = async() => {
 
     const retryBtn = document.createElement('button');
     retryBtn.type = 'button';
-    retryBtn.className = 'btn btn-secondary mt-3 ms-2';
+    retryBtn.className = 'btn btn-secondary mt-3 aiviva-ms-2';
     retryBtn.textContent = retryLabel;
 
     els.preview.replaceChildren(video, size, submitBtn, retryBtn);

@@ -53,6 +53,8 @@ Feature: Basic use of the AI Viva activity
       | Activity name | Capstone viva |
     And I am on the "Capstone viva" "aiviva activity" page
     Then I should see "View submissions"
+    When I navigate to "Settings" in current page administration
+    Then the field "Hold grades for teacher review" matches value "1"
 
   Scenario: A teacher gives a student extra attempts with an override
     Given I am on the "Thesis viva" "aiviva activity" page logged in as teacher1
@@ -70,6 +72,15 @@ Feature: Basic use of the AI Viva activity
     Then I should see "Override saved"
     When I am on the "Thesis viva" "aiviva activity" page logged in as student1
     Then I should see "Attempt 0 of 3"
+
+  Scenario: The override user list only shows the identity fields the site allows
+    Given the following config values are set as admin:
+      | showuseridentity | |
+    And I am on the "Thesis viva" "aiviva activity" page logged in as teacher1
+    And I navigate to "User/Group Overrides" in current page administration
+    When I follow "Add override"
+    Then the "User" select box should contain "Sam Student"
+    And I should not see "student1@example.com"
 
   Scenario: An administrator sees the licence status on the settings page
     Given I log in as "admin"

@@ -21,7 +21,7 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {post, showStatus} from './utils';
+import {call, showStatus} from './utils';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 
@@ -53,7 +53,11 @@ export const init = (cfg) => {
         showStatus(statusEl, await getString('regen_running', 'mod_aiviva'), 'info');
 
         try {
-            await post(button.dataset.action, {cmid: cfg.cmid, submissionid: cfg.submissionid});
+            await call('mod_aiviva_regenerate_analysis', {
+                cmid: cfg.cmid,
+                submissionid: cfg.submissionid,
+                scope: button.dataset.action.replace('regen_', ''),
+            });
             showStatus(statusEl, await getString('regen_success', 'mod_aiviva'), 'success');
             window.location.reload();
         } catch (e) {

@@ -76,6 +76,11 @@ class openai_client {
      * Private constructor — use {@see self::get_instance()}.
      */
     private function __construct() {
+        global $CFG;
+
+        // The curl class lives in filelib.php, which not every entry point loads.
+        require_once($CFG->libdir . '/filelib.php');
+
         // License backstop: no AI call may proceed without a valid key bound to
         // this site, guaranteeing the block holds on every call path (including
         // background tasks) even if an entry-point check is ever bypassed.
@@ -121,10 +126,25 @@ class openai_client {
      * @param string $model        Model ID.
      * @param string $instructions System-level instructions (optional).
      * @param array  $options      Extra body parameters.
+     * @param int    $userid       Moodle user id for rate limiting.
+     * @param bool   $moderate     Whether to run the content filter on the text parts of the input first.
      * @return array Decoded API response.
-     * @throws \moodle_exception on API error.
+     * @throws \moodle_exception on API error, flagged content or rate limit exceeded.
      */
-    public function responses_completion(array $input, string $model, string $instructions = '', array $options = []): array {
+    public function responses_completion(
+        array $input,
+        string $model,
+        string $instructions = '',
+        array $options = [],
+        int $userid = 0,
+        bool $moderate = true
+    ): array {
+        $this->check_rate_limit($userid);
+
+        if ($moderate && $this->contentfilter) {
+            $this->moderate_messages($input);
+        }
+
         $body = array_merge([
             'model'             => $model,
             'input'             => $input,
@@ -175,6 +195,19 @@ class openai_client {
             return ($response['incomplete_details']['reason'] ?? '') === 'max_output_tokens';
         }
         return ($response['choices'][0]['finish_reason'] ?? '') === 'length';
+    }
+
+    /**
+     * Tells whether a failed call was refused by this site's own safeguards (the content
+     * filter or the per-user call limit) rather than by the AI service. Such a call must
+     * not be attempted again by another route.
+     *
+     * @param \Throwable $e The failure.
+     * @return bool
+     */
+    public static function is_refusal(\Throwable $e): bool {
+        return $e instanceof \moodle_exception
+            && in_array($e->errorcode, ['content_flagged', 'rate_limit_exceeded'], true);
     }
 
     /**
@@ -391,12 +424,7 @@ class openai_client {
             if ($method === 'POST') {
                 $encoded = json_encode($body, JSON_UNESCAPED_UNICODE);
                 if ($encoded === false) {
-                    throw new \moodle_exception(
-                        'openai_api_error',
-                        'mod_aiviva',
-                        '',
-                        'Failed to encode request as JSON: ' . json_last_error_msg()
-                    );
+                    throw $this->api_error($path, 'Failed to encode request as JSON: ' . json_last_error_msg());
                 }
                 $raw = $curl->post($url, $encoded, $options);
             } else {
@@ -430,7 +458,7 @@ class openai_client {
             break;
         }
 
-        throw new \moodle_exception('openai_api_error', 'mod_aiviva', '', $lasterr);
+        throw $this->api_error($path, $lasterr);
     }
 
     /**
@@ -452,7 +480,7 @@ class openai_client {
         $raw = $curl->post($url, $data, ['CURLOPT_TIMEOUT' => $this->timeout]);
 
         if ($curl->get_errno()) {
-            throw new \moodle_exception('openai_api_error', 'mod_aiviva', '', $curl->error);
+            throw $this->api_error($path, $curl->error);
         }
 
         $info = $curl->get_info();
@@ -463,23 +491,35 @@ class openai_client {
             return $decoded ?? [];
         }
 
-        throw new \moodle_exception(
-            'openai_api_error',
-            'mod_aiviva',
-            '',
-            $decoded['error']['message'] ?? "HTTP {$status}"
-        );
+        throw $this->api_error($path, $decoded['error']['message'] ?? "HTTP {$status}");
+    }
+
+    /**
+     * Builds the error for a failed request to the AI service.
+     *
+     * What the service says (quotas, billing, keys, models) is for administrators only:
+     * it goes to the server log and to the exception's debug information, while users
+     * get a fixed message.
+     *
+     * @param string $path   URL path of the request.
+     * @param string $detail The service's own error text.
+     * @return \moodle_exception
+     */
+    private function api_error(string $path, string $detail): \moodle_exception {
+        debugging("aiviva: request to the AI service failed ({$path}): {$detail}", DEBUG_NORMAL);
+        return new \moodle_exception('openai_api_error', 'mod_aiviva', '', null, $detail);
     }
 
     /**
      * Checks the OpenAI moderation endpoint for each user message.
      * Throws if content is flagged.
      *
-     * @param array $messages Chat messages array.
+     * @param array $messages Chat messages, or Responses API input items.
      * @throws \moodle_exception if content is flagged.
      */
     private function moderate_messages(array $messages): void {
-        // Only text is moderated: multimodal messages carry their text in 'text' parts.
+        // Only text is moderated: multimodal messages carry their text in 'text' parts
+        // (Chat Completions) or 'input_text' parts (Responses API).
         $inputs = [];
         foreach ($messages as $message) {
             if ($message['role'] !== 'user') {
@@ -487,7 +527,7 @@ class openai_client {
             }
             $parts = is_array($message['content']) ? $message['content'] : [['type' => 'text', 'text' => $message['content']]];
             foreach ($parts as $part) {
-                if (($part['type'] ?? '') === 'text' && trim($part['text'] ?? '') !== '') {
+                if (in_array($part['type'] ?? '', ['text', 'input_text'], true) && trim($part['text'] ?? '') !== '') {
                     $inputs[] = $part['text'];
                 }
             }

@@ -220,7 +220,7 @@ if ($panel === 'results') {
         }
         // The per-step breakdown is the AI's; it is shown only while the grade is the AI's own.
         $breakdown = json_decode((string)$submission->grade_breakdown, true);
-        if (is_array($breakdown) && empty($submission->grader_userid)) {
+        if (is_array($breakdown) && !manager::grade_was_edited($submission)) {
             echo $PAGE->get_renderer('mod_aiviva')->render_grade_breakdown($breakdown);
         }
     } else {
@@ -376,7 +376,7 @@ if ($panel === 'step3') {
             'mod_aiviva',
             (int)$aiviva->step3_duration
         ),
-        'alert alert-warning d-inline-block text-start mb-4 aiviva-ready-notice'
+        'alert alert-warning d-inline-block aiviva-text-start mb-4 aiviva-ready-notice'
     );
     echo html_writer::start_div('aiviva-mic-test mb-4');
     echo html_writer::tag(

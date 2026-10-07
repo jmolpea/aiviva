@@ -50,11 +50,18 @@ class override_form extends \moodleform {
         $mform->addElement('select', 'overridetype', get_string('override_type', 'mod_aiviva'), $types);
         $mform->setDefault('overridetype', 'user');
 
-        // User selector.
-        $enrolledusers = get_enrolled_users($context, 'mod/aiviva:submit');
-        $useroptions   = [0 => get_string('choosedots')];
+        // User selector. Beside the name, only the identity fields this teacher may see are shown.
+        $enrolledusers  = get_enrolled_users($context, 'mod/aiviva:submit');
+        $identityfields = \core_user\fields::get_identity_fields($context, false);
+        $useroptions    = [0 => get_string('choosedots')];
         foreach ($enrolledusers as $u) {
-            $useroptions[$u->id] = fullname($u) . ' (' . $u->email . ')';
+            $identity = [];
+            foreach ($identityfields as $field) {
+                if (trim((string)($u->$field ?? '')) !== '') {
+                    $identity[] = $u->$field;
+                }
+            }
+            $useroptions[$u->id] = fullname($u) . ($identity ? ' (' . implode(', ', $identity) . ')' : '');
         }
         $mform->addElement('select', 'userid', get_string('override_user', 'mod_aiviva'), $useroptions);
         $mform->hideIf('userid', 'overridetype', 'eq', 'group');

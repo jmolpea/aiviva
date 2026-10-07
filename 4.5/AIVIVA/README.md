@@ -79,7 +79,7 @@ With several attempts allowed, a new attempt can be started once the previous on
 - edit the grade and feedback, **save** them as a draft, **publish** them to the student and the gradebook, or **withdraw** a published grade;
 - **regenerate** the AI analyses or the evaluation, for example after changing a prompt. A grade or feedback edited by a teacher is never overwritten by a regeneration, and the student is not notified again.
 
-If "Hold grades for teacher review" is off, the AI grade is released automatically.
+"Hold grades for teacher review" is on by default. If a teacher switches it off, the AI grade is released automatically, except when the AI could not read part of the work or raised an academic-integrity concern: those grades always wait for a teacher.
 
 ---
 
@@ -103,7 +103,7 @@ Limits of the AI service to bear in mind: OpenAI limits the number of pages and 
 - Sent to OpenAI: the PDF as submitted, the audio of the presentation and of each tribunal answer, screenshots of the presentation, and the resulting transcripts. The student's Moodle name and email are not sent; prompts use a pseudonymous code. The content itself may still identify the student, and the built-in privacy notice says so.
 - Students must accept the privacy notice before each attempt.
 - Recordings are deleted after the retention period set on the activity; the PDF, transcripts and grades are kept.
-- The Privacy API is implemented: export and deletion cover attempts, conversations, files and per-user overrides.
+- The Privacy API is implemented: export and deletion cover attempts, conversations, files, per-user overrides, and the grades a teacher edited.
 - Every upload is checked by real content type and size; every state-changing request requires the session key; students can only act on their own latest attempt and only in the state that allows it.
 - The API keys are stored encrypted with Moodle's encryption API and are never shown again once saved.
 - Teachers restricted to their own groups can only see, download and regenerate their groups' attempts.

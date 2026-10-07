@@ -7,7 +7,39 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.0] — 2026-10-04 (version 2026100302)
+## [1.3.0] — 2026-10-07 (version 2026100700)
+
+Follow-ups from the Moodle plugins directory review (MMRT-223).
+
+### Changed
+
+- **New activities hold the AI grade for teacher review by default.** "Hold grades for teacher review" is now on when an activity is created; a teacher can still switch automatic release on. Existing activities keep the setting they were saved with.
+- A grade is never released automatically when the evaluation raises an academic integrity concern: it waits for a teacher, who is notified, whatever the activity's setting.
+- The requests that carry no file (status poll, the tribunal's prepare, start, next question and close, and the teacher's regeneration) are now External Services in `classes/external/`, registered in `db/services.php` and called through `core/ajax`. `ajax.php` only keeps the file uploads and the streamed examiner audio. The final evaluation is now always queued as an adhoc task when the tribunal closes.
+- The content filter and the per-user call limit now also apply to Responses API calls (the document analysis and the final evaluation), not only to Chat Completions.
+
+### Privacy
+
+- The Privacy API now covers teachers' grading data: a teacher's data request finds the activities where they edited a grade and exports the grade, feedback and time they set (without the student's identity), and a deletion request removes their user id from those attempts. The grade itself stays, still marked as edited by a teacher.
+- The user list of the override form only shows the identity fields allowed by the site's "Show user identity" setting and the `moodle/site:viewuseridentity` capability, instead of always showing the e-mail address.
+- In separate groups mode, the "ready for review" notification is only sent to the teachers who can review that student.
+
+### Fixed
+
+- Students no longer see the AI provider's own error text (quotas, billing, keys, models). They get a fixed message; the provider's text goes to the exception's debug information and to the server log.
+- The default name of an examiner whose name was left empty ("Examiner 1") is now a language string.
+
+---
+
+## [1.2.1] — 2026-10-06 (version 2026100600)
+
+### Fixed
+
+- Same look on Moodle 4.5 and 5.x. Status badges, spacing between buttons and bold labels used Bootstrap 5 class names only, which do nothing on Moodle 4.5 (Bootstrap 4): badges showed dark text on a coloured background. The plugin now uses its own classes, so it no longer depends on the Bootstrap version or on the theme.
+
+---
+
+## [1.2.0] — 2026-10-04 (version 2026100303)
 
 ### Compatibility
 

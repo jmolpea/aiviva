@@ -147,6 +147,75 @@ final class provider_test extends provider_testcase {
         $this->assertSame(count(manager::submission_fileareas()), $this->count_student_files($context));
     }
 
+    /**
+     * Marks the first student's attempt as graded by a new teacher.
+     *
+     * @param \context $context  The module context.
+     * @param \stdClass $student The student whose attempt is graded.
+     * @param int $aivivaid      The activity id.
+     * @return \stdClass The teacher.
+     */
+    private function grade_as_teacher(\context $context, \stdClass $student, int $aivivaid): \stdClass {
+        global $DB;
+
+        $course  = get_course($context->get_course_context()->instanceid);
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $DB->set_field_select(
+            'aiviva_submissions',
+            'grader_userid',
+            $teacher->id,
+            'aiviva = :aiviva AND userid = :userid',
+            ['aiviva' => $aivivaid, 'userid' => $student->id]
+        );
+        $DB->set_field('aiviva_submissions', 'timegraded', time(), ['aiviva' => $aivivaid, 'userid' => $student->id]);
+
+        return $teacher;
+    }
+
+    public function test_teacher_who_edited_a_grade_is_found_and_gets_an_export(): void {
+        [$context, $first, $second, $aivivaid] = $this->setup_attempts();
+        $teacher = $this->grade_as_teacher($context, $first, $aivivaid);
+
+        $this->assertEquals([$context->id], provider::get_contexts_for_userid($teacher->id)->get_contextids());
+
+        $userlist = new userlist($context, 'mod_aiviva');
+        provider::get_users_in_context($userlist);
+        $this->assertEqualsCanonicalizing([$first->id, $second->id, $teacher->id], $userlist->get_userids());
+
+        $this->export_context_data_for_user($teacher->id, $context, 'mod_aiviva');
+        $exported = writer::with_context($context);
+        $graded = $exported->get_data([get_string('privacy:gradedattempts', 'mod_aiviva'), 1]);
+        $this->assertEquals(51, $graded->final_grade);
+        $this->assertSame('Feedback 1', $graded->final_feedback);
+        $this->assertNotEmpty($graded->timegraded);
+
+        // Nothing of the student's own work, nor who the student is, goes into the teacher's export.
+        $this->assertObjectNotHasProperty('userid', $graded);
+        $this->assertObjectNotHasProperty('pdf_analysis', $graded);
+        $this->assertEmpty($exported->get_data([get_string('attempt_number', 'mod_aiviva', 1)]));
+    }
+
+    public function test_delete_for_a_teacher_removes_their_name_but_keeps_the_grade(): void {
+        global $DB;
+
+        [$context, $first, , $aivivaid] = $this->setup_attempts();
+        $teacher = $this->grade_as_teacher($context, $first, $aivivaid);
+
+        provider::delete_data_for_user(new approved_contextlist($teacher, 'mod_aiviva', [$context->id]));
+
+        $submission = $DB->get_record('aiviva_submissions', ['aiviva' => $aivivaid, 'userid' => $first->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $submission->grader_userid);
+        $this->assertEquals(51, $submission->final_grade);
+        $this->assertTrue(manager::grade_was_edited($submission));
+        $this->assertEmpty(provider::get_contexts_for_userid($teacher->id)->get_contextids());
+
+        // The same through the list of users of a context.
+        $teacher = $this->grade_as_teacher($context, $first, $aivivaid);
+        provider::delete_data_for_users(new approved_userlist($context, 'mod_aiviva', [$teacher->id]));
+        $this->assertEquals(0, $DB->get_field('aiviva_submissions', 'grader_userid', ['id' => $submission->id]));
+        $this->assertSame(2, $DB->count_records('aiviva_submissions', ['aiviva' => $aivivaid]));
+    }
+
     public function test_delete_for_a_list_of_users(): void {
         global $DB;
 

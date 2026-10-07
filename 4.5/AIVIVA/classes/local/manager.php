@@ -212,24 +212,78 @@ class manager {
     }
 
     /**
-     * Tells whether the current user may review a given student's attempts,
-     * honouring the activity's separate-groups mode.
+     * Tells whether a teacher has edited the grade or the feedback of an attempt.
      *
-     * @param \stdClass|\cm_info $cm      The course module.
-     * @param \context           $context The module context.
-     * @param int                $userid  The student.
+     * The grader is null while the grade is the AI's own, and 0 once the teacher
+     * who edited it has had their personal data deleted.
+     *
+     * @param \stdClass $submission The submission record.
      * @return bool
      */
-    public static function can_review_user($cm, \context $context, int $userid): bool {
+    public static function grade_was_edited(\stdClass $submission): bool {
+        return ($submission->grader_userid ?? null) !== null;
+    }
+
+    /**
+     * Returns the current user's own attempt, enforcing every rule that applies
+     * to a student action.
+     *
+     * @param \stdClass $aiviva       The activity record.
+     * @param int       $submissionid Submission id sent by the browser.
+     * @param string[]  $statuses     Statuses in which the action is allowed (empty = any).
+     * @param bool      $requireopen  Whether the activity must be within its availability window.
+     * @return \stdClass Submission record.
+     * @throws \moodle_exception if the attempt is not the user's latest, lacks consent,
+     *                           is in the wrong state, or the activity is closed.
+     */
+    public static function require_own_submission(
+        \stdClass $aiviva,
+        int $submissionid,
+        array $statuses = [],
+        bool $requireopen = false
+    ): \stdClass {
         global $USER;
 
+        $submission = self::get_latest_submission($aiviva->id, $USER->id);
+        if (!$submission || (int)$submission->id !== $submissionid) {
+            throw new \moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
+        }
+        if (!$submission->gdpr_consent) {
+            throw new \moodle_exception('gdpr_consent_required', 'mod_aiviva');
+        }
+        if ($statuses && !in_array($submission->status, $statuses, true)) {
+            throw new \moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
+        }
+        if ($requireopen) {
+            $availability = self::availability(self::get_effective_settings($aiviva, $USER->id));
+            if ($availability !== '') {
+                throw new \moodle_exception('error_' . $availability, 'mod_aiviva');
+            }
+        }
+        return $submission;
+    }
+
+    /**
+     * Tells whether a user may review a given student's attempts, honouring
+     * the activity's separate-groups mode.
+     *
+     * @param \stdClass|\cm_info $cm         The course module.
+     * @param \context           $context    The module context.
+     * @param int                $userid     The student.
+     * @param int|null           $reviewerid The reviewing user (defaults to the current user).
+     * @return bool
+     */
+    public static function can_review_user($cm, \context $context, int $userid, ?int $reviewerid = null): bool {
+        global $USER;
+
+        $reviewerid ??= (int)$USER->id;
         if (
             groups_get_activity_groupmode($cm) != SEPARATEGROUPS
-                || has_capability('moodle/site:accessallgroups', $context)
+                || has_capability('moodle/site:accessallgroups', $context, $reviewerid)
         ) {
             return true;
         }
-        $mine   = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid, 'g.id');
+        $mine   = groups_get_all_groups($cm->course, $reviewerid, $cm->groupingid, 'g.id');
         $theirs = groups_get_all_groups($cm->course, $userid, $cm->groupingid, 'g.id');
         return (bool)array_intersect_key($mine, $theirs);
     }

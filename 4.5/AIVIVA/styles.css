@@ -656,3 +656,48 @@ video.avatar-video {
         opacity: 0.55;
     }
 }
+
+/* Spacing, text, badge and form helpers. Own rules instead of Bootstrap utilities, whose names differ between
+   Bootstrap 4 (Moodle 4.5) and Bootstrap 5 (Moodle 5.x). */
+/* Like the Bootstrap utilities they replace, these must win over component rules. */
+/* stylelint-disable declaration-no-important */
+.aiviva-ms-2 {
+    margin-inline-start: .5rem !important;
+}
+
+.aiviva-me-1 {
+    margin-inline-end: .25rem !important;
+}
+
+.aiviva-gap-2 {
+    gap: .5rem !important;
+}
+
+.aiviva-text-start {
+    text-align: start !important;
+}
+
+.aiviva-fw-bold {
+    font-weight: 700 !important;
+}
+/* stylelint-enable declaration-no-important */
+
+:root .aiviva-badge-info {
+    color: #fff;
+    background-color: var(--bs-info, var(--info, #008196));
+}
+
+:root .aiviva-badge-secondary {
+    color: #1d2125;
+    background-color: var(--bs-secondary, var(--secondary, #ced4da));
+}
+
+:root .aiviva-badge-success {
+    color: #fff;
+    background-color: var(--bs-success, var(--success, #357a32));
+}
+
+:root .aiviva-badge-warning {
+    color: #1d2125;
+    background-color: var(--bs-warning, var(--warning, #f0ad4e));
+}

@@ -200,6 +200,7 @@ class mod_aiviva_mod_form extends moodleform_mod {
 
         $mform->addElement('advcheckbox', 'grading_workflow', get_string('grading_workflow', 'mod_aiviva'));
         $mform->addHelpButton('grading_workflow', 'grading_workflow', 'mod_aiviva');
+        $mform->setDefault('grading_workflow', 1);
 
         $mform->addElement('advcheckbox', 'notify_student', get_string('notify_student', 'mod_aiviva'));
         $mform->setDefault('notify_student', 1);
