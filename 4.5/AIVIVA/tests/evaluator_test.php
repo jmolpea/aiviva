@@ -126,6 +126,73 @@ final class evaluator_test extends \advanced_testcase {
         $this->assertSame('inreview', $graded->workflow_state);
     }
 
+    public function test_integrity_concern_holds_the_grade_for_review(): void {
+        [$submission, $aiviva, $course, $cm] = $this->setup_attempt();
+        $this->assertEquals(0, $aiviva->grading_workflow);
+
+        $evaluation = json_decode($this->evaluation_json(), true);
+        $evaluation['academic_integrity_flags'] = ['The answers contradict the document.'];
+        \curl::mock_response($this->chat_answer(json_encode($evaluation)));
+        $graded = (new evaluator())->evaluate($submission, $aiviva, $course, $cm);
+
+        $this->assertSame('graded', $graded->status);
+        $this->assertSame('inreview', $graded->workflow_state);
+    }
+
+    public function test_new_activities_hold_grades_by_default(): void {
+        global $DB;
+
+        $this->assertEquals(1, $DB->get_columns('aiviva')['grading_workflow']->default_value);
+    }
+
+    public function test_provider_error_text_is_kept_from_users(): void {
+        // Moodle's curl mock always answers with HTTP 200, so the failure used here is one that
+        // happens before the request is sent: text that cannot be encoded as JSON.
+        try {
+            openai_client::get_instance()->chat_completion([['role' => 'user', 'content' => "\xB1\x31"]], 'gpt-6-luna');
+            $this->fail('The failed request should have raised an exception.');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('openai_api_error', $e->errorcode);
+            $this->assertStringContainsString('JSON', $e->debuginfo);
+            $this->assertSame('', (string)$e->a);
+        }
+        // What a user is shown is the language string, which has no room for the provider's text.
+        $this->assertStringNotContainsString('{$a}', get_string_manager()->get_string('openai_api_error', 'mod_aiviva'));
+        $this->assertDebuggingCalled(null, DEBUG_NORMAL);
+    }
+
+    public function test_responses_api_calls_count_towards_the_user_limit(): void {
+        set_config('api_rate_limit', 1, 'mod_aiviva');
+        $input = [['role' => 'user', 'content' => [['type' => 'input_text', 'text' => 'Hello']]]];
+        $client = openai_client::get_instance();
+
+        \curl::mock_response(json_encode(['status' => 'completed', 'output' => []]));
+        $client->responses_completion($input, 'gpt-6-luna', '', [], 42);
+
+        try {
+            $client->responses_completion($input, 'gpt-6-luna', '', [], 42);
+            $this->fail('The second call of the same user should have been refused.');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('rate_limit_exceeded', $e->errorcode);
+            $this->assertTrue(openai_client::is_refusal($e));
+        }
+    }
+
+    public function test_responses_api_input_goes_through_the_content_filter(): void {
+        set_config('safety_content_filter', 1, 'mod_aiviva');
+        $input = [['role' => 'user', 'content' => [
+            ['type' => 'input_file', 'filename' => 'document.pdf', 'file_data' => 'data:application/pdf;base64,AAAA'],
+            ['type' => 'input_text', 'text' => 'Something the filter rejects'],
+        ]]];
+
+        // The only request made is the one to the moderation service, which flags the text.
+        \curl::mock_response(json_encode(['results' => [['flagged' => true]]]));
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('content_flagged', 'mod_aiviva'));
+        openai_client::get_instance()->responses_completion($input, 'gpt-6-luna', '', [], 42);
+    }
+
     public function test_answer_cut_short_is_requested_again(): void {
         $this->resetAfterTest();
 

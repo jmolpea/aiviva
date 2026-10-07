@@ -206,13 +206,13 @@ if (!$submission) {
 
     foreach ($submissions as $sub) {
         $viewurl = new moodle_url($listurl, ['submissionid' => $sub->id]);
-        $actions = html_writer::link($viewurl, get_string('view'), ['class' => 'btn btn-sm btn-outline-primary me-1']);
+        $actions = html_writer::link($viewurl, get_string('view'), ['class' => 'btn btn-sm btn-outline-primary aiviva-me-1']);
         if ($cangrade) {
             $actions .= aiviva_delete_link($listurl, $sub->id, 'btn btn-sm btn-outline-danger');
         }
         $finalgrade = $sub->final_grade !== null ? format_float($sub->final_grade, 2) : '-';
-        if ($sub->final_grade !== null && $sub->grader_userid) {
-            $finalgrade .= ' ' . html_writer::span(get_string('grade_edited', 'mod_aiviva'), 'badge bg-info text-dark');
+        if ($sub->final_grade !== null && manager::grade_was_edited($sub)) {
+            $finalgrade .= ' ' . html_writer::span(get_string('grade_edited', 'mod_aiviva'), 'badge aiviva-badge-info text-dark');
         }
 
         $table->data[] = [
@@ -250,7 +250,7 @@ echo html_writer::start_div('d-flex justify-content-between align-items-center m
 echo html_writer::link($listurl, get_string('back_to_submissions', 'mod_aiviva'), ['class' => 'btn btn-sm btn-outline-secondary']);
 echo html_writer::div(
     $renderer->render_status_badge($submission->status) .
-    ($cangrade ? ' ' . aiviva_delete_link($listurl, $submission->id, 'btn btn-sm btn-danger ms-2') : '')
+    ($cangrade ? ' ' . aiviva_delete_link($listurl, $submission->id, 'btn btn-sm btn-danger aiviva-ms-2') : '')
 );
 echo html_writer::end_div();
 
@@ -409,7 +409,7 @@ if ($nodocument || $nopresentation) {
 echo html_writer::start_div('card card-body mb-3 border-warning');
 echo html_writer::tag('h5', get_string('regen_heading', 'mod_aiviva'));
 echo html_writer::tag('p', get_string('regen_explanation', 'mod_aiviva'), ['class' => 'text-muted small']);
-echo html_writer::start_div('d-flex flex-wrap gap-2 mb-2');
+echo html_writer::start_div('d-flex flex-wrap aiviva-gap-2 mb-2');
 foreach (['regen_pdf', 'regen_video', 'regen_evaluation', 'regen_all'] as $regenaction) {
     echo html_writer::tag('button', get_string($regenaction, 'mod_aiviva'), [
         'type'        => 'button',
@@ -480,7 +480,7 @@ echo html_writer::div(
     'mb-3'
 );
 
-echo html_writer::start_div('d-flex flex-wrap gap-2');
+echo html_writer::start_div('d-flex flex-wrap aiviva-gap-2');
 echo html_writer::tag('button', get_string('savechanges'), [
     'type' => 'submit', 'name' => 'action', 'value' => 'save', 'class' => 'btn btn-primary',
 ]);

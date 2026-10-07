@@ -21,9 +21,11 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import Ajax from 'core/ajax';
 import Config from 'core/config';
 
-const ENDPOINT = Config.wwwroot + '/mod/aiviva/ajax.php';
+/** @type {string} Endpoint for file uploads and the streamed examiner audio. */
+export const ENDPOINT = Config.wwwroot + '/mod/aiviva/ajax.php';
 
 /** @type {AudioContext|null} Shared audio context, created on first use after a user gesture. */
 let audioContext = null;
@@ -48,7 +50,16 @@ export const getAudioContext = () => {
 };
 
 /**
- * Sends a request to the plugin's AJAX endpoint.
+ * Calls one of the plugin's external functions.
+ *
+ * @param {string} methodname External function name.
+ * @param {Object} args       Its arguments.
+ * @returns {Promise<Object>} Resolves with the result; rejects with an error carrying the server message.
+ */
+export const call = (methodname, args) => Ajax.call([{methodname, args}])[0];
+
+/**
+ * Uploads files to the plugin's upload endpoint.
  *
  * @param {string}   action       Endpoint action.
  * @param {Object}   params       Request fields. Blob values are sent as files; an array
@@ -111,13 +122,12 @@ export const post = (action, params = {}, onProgress = null) => {
  * @returns {Promise<string>} Resolves with the new status.
  */
 export const waitForStatusChange = (cfg, whileStatuses, intervalMs = 4000) => {
-    const url = `${ENDPOINT}?action=status&cmid=${cfg.cmid}&submissionid=${cfg.submissionid}`;
+    const args = {cmid: cfg.cmid, submissionid: cfg.submissionid};
     return new Promise(resolve => {
         const poll = async() => {
             try {
-                const response = await fetch(url, {credentials: 'same-origin'});
-                const data = await response.json();
-                if (data.success && !whileStatuses.includes(data.status)) {
+                const data = await call('mod_aiviva_get_attempt_status', args);
+                if (!whileStatuses.includes(data.status)) {
                     resolve(data.status);
                     return;
                 }

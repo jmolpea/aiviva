@@ -69,7 +69,7 @@ class pdf_analyzer {
                   '. Do not use any other language.' . prompt_helper::safety_instructions($aiviva);
 
         // Primary: Responses API with the PDF itself.
-        $result = $this->try_responses_api($tmppath, $prompt, $model, $system);
+        $result = $this->try_responses_api($tmppath, $prompt, $model, $system, $userid);
         if ($result !== null) {
             return $result;
         }
@@ -88,7 +88,7 @@ class pdf_analyzer {
             ['role' => 'user', 'content' => $prompt . "\n\n" . prompt_helper::delimit('STUDENT DOCUMENT', $pdftext)],
         ];
 
-        $response = $this->client->chat_completion($messages, $model);
+        $response = $this->client->chat_completion($messages, $model, [], $userid);
         return $response['choices'][0]['message']['content'] ?? '';
     }
 
@@ -99,9 +99,11 @@ class pdf_analyzer {
      * @param string $prompt  Teacher-configured analysis prompt.
      * @param string $model   Model ID.
      * @param string $system  System instructions.
+     * @param int    $userid  The student who owns the document.
      * @return string|null Analysis text, or null if the API call failed.
+     * @throws \moodle_exception if the content filter or the call limit refused the request.
      */
-    private function try_responses_api(string $tmppath, string $prompt, string $model, string $system): ?string {
+    private function try_responses_api(string $tmppath, string $prompt, string $model, string $system, int $userid): ?string {
         $rawpdf = file_get_contents($tmppath);
         if ($rawpdf === false) {
             return null;
@@ -117,12 +119,21 @@ class pdf_analyzer {
         }
 
         try {
-            $response = $this->client->responses_completion([['role' => 'user', 'content' => $content]], $model, $system);
+            $response = $this->client->responses_completion(
+                [['role' => 'user', 'content' => $content]],
+                $model,
+                $system,
+                [],
+                $userid
+            );
             $text = openai_client::responses_output_text($response);
             if ($text !== '') {
                 return $text;
             }
         } catch (\Throwable $e) {
+            if (openai_client::is_refusal($e)) {
+                throw $e;
+            }
             debugging(
                 'aiviva pdf_analyzer: Responses API failed, falling back to text extraction. ' . $e->getMessage(),
                 DEBUG_DEVELOPER

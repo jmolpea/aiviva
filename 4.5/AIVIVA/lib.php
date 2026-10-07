@@ -130,7 +130,7 @@ function aiviva_process_form_data(stdClass $data): void {
 
     // Ensure integer defaults.
     $data->max_attempts     = isset($data->max_attempts) ? (int)$data->max_attempts : 2;
-    $data->grading_workflow = isset($data->grading_workflow) ? (int)$data->grading_workflow : 0;
+    $data->grading_workflow = isset($data->grading_workflow) ? (int)$data->grading_workflow : 1;
     $data->notify_student   = isset($data->notify_student) ? (int)$data->notify_student : 1;
     $data->video_purge_days = isset($data->video_purge_days) ? max(0, (int)$data->video_purge_days) : 15;
     $data->timeopen         = (int)($data->timeopen ?? 0);
@@ -559,7 +559,9 @@ function aiviva_extend_settings_navigation(settings_navigation $settingsnav, nav
 }
 
 /**
- * Notifies enrolled graders that a submission is ready for review.
+ * Notifies the graders who may review the student that a submission is ready for review.
+ *
+ * In separate groups mode a grader is only told about students of their own groups.
  *
  * @param stdClass $aiviva     The aiviva activity instance.
  * @param stdClass $submission The student submission record.
@@ -575,7 +577,15 @@ function aiviva_notify_teacher_submission_ready(
     global $DB;
 
     $context = context_module::instance($cm->id);
-    $teachers = get_enrolled_users($context, 'mod/aiviva:grade');
+    $teachers = array_filter(
+        get_enrolled_users($context, 'mod/aiviva:grade'),
+        static fn($teacher) => \mod_aiviva\local\manager::can_review_user(
+            $cm,
+            $context,
+            (int)$submission->userid,
+            (int)$teacher->id
+        )
+    );
 
     if (!$teachers) {
         return;

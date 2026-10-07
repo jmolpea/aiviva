@@ -52,9 +52,9 @@ class renderer extends \plugin_renderer_base {
             'graded'    => 'success',
         ];
         if (!isset($classmap[$status])) {
-            return \html_writer::span(s($status), 'badge bg-secondary');
+            return \html_writer::span(s($status), 'badge aiviva-badge-secondary');
         }
-        return \html_writer::span(get_string('status_' . $status, 'mod_aiviva'), 'badge bg-' . $classmap[$status]);
+        return \html_writer::span(get_string('status_' . $status, 'mod_aiviva'), 'badge aiviva-badge-' . $classmap[$status]);
     }
 
     /**

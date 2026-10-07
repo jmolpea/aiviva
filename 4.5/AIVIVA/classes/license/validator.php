@@ -168,7 +168,7 @@ class validator {
                 $text = $result->expires
                     ? get_string('license_status_valid', self::COMPONENT, $result->expires)
                     : get_string('license_status_valid_lifetime', self::COMPONENT);
-                return ['text' => $text, 'css' => 'text-success fw-bold'];
+                return ['text' => $text, 'css' => 'text-success aiviva-fw-bold'];
 
             case self::STATUS_TRIAL:
                 return [
@@ -176,25 +176,25 @@ class validator {
                         'days'    => $result->daysleft,
                         'expires' => $result->expires,
                     ]),
-                    'css'  => 'text-info fw-bold',
+                    'css'  => 'text-info aiviva-fw-bold',
                 ];
 
             case self::STATUS_EXPIRED:
                 return [
                     'text' => get_string('license_status_expired', self::COMPONENT, $result->expires),
-                    'css'  => 'text-warning fw-bold',
+                    'css'  => 'text-warning aiviva-fw-bold',
                 ];
 
             case self::STATUS_INVALID:
                 return [
                     'text' => get_string('license_status_invalid', self::COMPONENT),
-                    'css'  => 'text-danger fw-bold',
+                    'css'  => 'text-danger aiviva-fw-bold',
                 ];
 
             default: // MISSING — no key and the evaluation period is over.
                 return [
                     'text' => get_string('license_status_trial_expired', self::COMPONENT),
-                    'css'  => 'text-danger fw-bold',
+                    'css'  => 'text-danger aiviva-fw-bold',
                 ];
         }
     }

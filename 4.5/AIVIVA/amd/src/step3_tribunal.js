@@ -27,8 +27,8 @@
  */
 
 import {
-    post, showStatus, formatTime, playBeep, getAudioContext, pickMimeType,
-    startLevelMeter, waitForStatusChange,
+    call, post, showStatus, formatTime, playBeep, getAudioContext, pickMimeType,
+    startLevelMeter, waitForStatusChange, ENDPOINT,
 } from './utils';
 import {get_strings as getStrings} from 'core/str';
 import Config from 'core/config';
@@ -60,6 +60,13 @@ let warned = false;
 let busy = false; // True while a request or an examiner's turn is in progress.
 let ended = false;
 let prepared = null; // Promise of the server-side preparation started on page load.
+
+/**
+ * Arguments of the external functions that act on this attempt.
+ *
+ * @returns {Object}
+ */
+const attemptArgs = () => ({cmid: cfg.cmid, submissionid: cfg.submissionid});
 
 /**
  * Initialises the tribunal module.
@@ -105,7 +112,7 @@ export const init = async(config) => {
     // Have the server write the examiners' briefing and opening words now, while the
     // student reads the instructions and tests the microphone, so that "start" is instant.
     if (!cfg.started) {
-        prepared = post('tribunal_prepare', {cmid: cfg.cmid, submissionid: cfg.submissionid}).catch(() => null);
+        prepared = call('mod_aiviva_prepare_tribunal', attemptArgs()).catch(() => null);
     }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
@@ -165,7 +172,7 @@ const startSession = async() => {
     busy = true;
     try {
         await prepared;
-        const data = await post('tribunal_opening', {cmid: cfg.cmid, submissionid: cfg.submissionid});
+        const data = await call('mod_aiviva_start_tribunal', attemptArgs());
         data.history.forEach(item => appendToTranscript(item.member, item.name, item.text));
         syncClock(data.remaining);
         startClock();
@@ -337,7 +344,7 @@ const sendAnswer = async() => {
         setThinking(data.next.member, true);
         showStatus(els.status, str.memberThinking.replace('{name}', data.next.name), 'info');
 
-        const reply = await post('tribunal_next', {cmid: cfg.cmid, submissionid: cfg.submissionid});
+        const reply = await call('mod_aiviva_get_next_question', attemptArgs());
         setThinking(data.next.member, false);
         syncClock(reply.remaining);
         showStatus(els.status, '');
@@ -406,7 +413,7 @@ const playTurnAudioOnce = (turn, attempt) => new Promise(resolve => {
         attempt: attempt,
         sesskey: Config.sesskey,
     });
-    const audio = new Audio(`${Config.wwwroot}/mod/aiviva/ajax.php?${params.toString()}`);
+    const audio = new Audio(`${ENDPOINT}?${params.toString()}`);
     let started = false;
     let lastTime = -1;
     let lastProgress = Date.now();
@@ -526,7 +533,7 @@ const endSession = async() => {
     // The server's clock is the one that counts; if ours ran slightly fast, try again shortly.
     for (let attempt = 0; attempt < 6; attempt++) {
         try {
-            const data = await post('tribunal_closing', {cmid: cfg.cmid, submissionid: cfg.submissionid});
+            const data = await call('mod_aiviva_close_tribunal', attemptArgs());
             if (data.turn) {
                 await deliverTurn(data.turn);
             }

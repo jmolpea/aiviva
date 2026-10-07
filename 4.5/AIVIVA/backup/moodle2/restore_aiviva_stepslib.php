@@ -149,8 +149,9 @@ class restore_aiviva_activity_structure_step extends restore_activity_structure_
         $oldid            = $data->id;
         $data->aiviva     = $this->get_new_parentid('aiviva');
         $data->userid     = $this->get_mappingid('user', $data->userid);
-        $data->grader_userid = $data->grader_userid
-            ? $this->get_mappingid('user', $data->grader_userid)
+        // A grader of 0 means "edited by a teacher whose data has been deleted", so it is kept as 0.
+        $data->grader_userid = $data->grader_userid !== null
+            ? (int)$this->get_mappingid('user', $data->grader_userid)
             : null;
 
         $data->timecreated  = $this->apply_date_offset($data->timecreated);

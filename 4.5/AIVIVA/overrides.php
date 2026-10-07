@@ -200,7 +200,7 @@ foreach ($overrides as $ov) {
         ['id' => $id, 'action' => 'delete', 'overrideid' => $ov->id, 'sesskey' => sesskey()]
     );
 
-    $actions = html_writer::link($editurl, get_string('edit'), ['class' => 'btn btn-sm btn-outline-primary me-1']) .
+    $actions = html_writer::link($editurl, get_string('edit'), ['class' => 'btn btn-sm btn-outline-primary aiviva-me-1']) .
                html_writer::link($deleteurl, get_string('delete'), [
                    'class'                            => 'btn btn-sm btn-outline-danger',
                    'data-confirmation'                => 'modal',

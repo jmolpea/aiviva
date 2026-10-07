@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * AJAX endpoint for all mod_aiviva frontend requests.
- *
- * All responses are JSON. File uploads (PDF, recordings, spoken answers) are
- * the reason this is a script rather than a set of external functions.
+ * Endpoint for the requests of mod_aiviva that cannot be external functions:
+ * the file uploads (PDF, recordings, spoken answers), which answer in JSON, and
+ * the examiner's audio, which is streamed. Everything else is in classes/external.
  *
  * @package    mod_aiviva
  * @copyright  2026 RSMAX Consulting S.L. <https://pluginia.es>
@@ -51,23 +50,14 @@ try {
         aiviva_json_error(\mod_aiviva\license\validator::get_banner());
     }
 
-    // Everything except the read-only status poll changes state or costs an API call.
-    if ($action !== 'status') {
-        require_sesskey();
-    }
+    // Every action here stores a file or costs an API call.
+    require_sesskey();
 
     switch ($action) {
-        // Poll the state of the student's own attempt.
-        case 'status':
-            require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid);
-            echo json_encode(['success' => true, 'status' => $submission->status]);
-            break;
-
         // Step 1: PDF upload.
         case 'upload_pdf':
             require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['draft', 'step1'], true);
+            $submission = manager::require_own_submission($aiviva, $submissionid, ['draft', 'step1'], true);
             // A re-upload while the analysis is running is only allowed once it has clearly stalled.
             if ($submission->status === 'step1' && $submission->timemodified > time() - 10 * MINSECS) {
                 throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
@@ -123,7 +113,7 @@ try {
         // Step 2: presentation upload (screen recording + audio track + screenshots).
         case 'upload_video':
             require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['step2'], true);
+            $submission = manager::require_own_submission($aiviva, $submissionid, ['step2'], true);
             if ((int)$submission->video_fileid > 0 && $submission->timemodified > time() - 10 * MINSECS) {
                 throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
             }
@@ -223,37 +213,10 @@ try {
             );
             break;
 
-        // Step 3: get the briefing and the opening words ready while the student is on the ready screen.
-        case 'tribunal_prepare':
-            require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['step3'], true);
-            \core\session\manager::write_close();
-            core_php_time_limit::raise(300);
-            if (empty($submission->tribunal_timestart)) {
-                (new \mod_aiviva\api\tribunal_conductor($aiviva, $submission, $context))->prepare();
-            }
-            echo json_encode(['success' => true]);
-            break;
-
-        // Step 3: start the tribunal, or resume it after a reload. The clock never restarts.
-        case 'tribunal_opening':
-            require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['step3']);
-            if (empty($submission->tribunal_timestart)) {
-                // A session that has begun may always be finished; a new one needs the activity to be open.
-                aiviva_ajax_own_submission($aiviva, $submissionid, ['step3'], true);
-            }
-            \core\session\manager::write_close();
-            core_php_time_limit::raise(300);
-
-            $conductor = new \mod_aiviva\api\tribunal_conductor($aiviva, $submission, $context);
-            echo json_encode(['success' => true] + $conductor->start_or_resume());
-            break;
-
         // Step 3: the student's recorded answer; returns its transcript and who speaks next.
         case 'tribunal_turn':
             require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['step3']);
+            $submission = manager::require_own_submission($aiviva, $submissionid, ['step3']);
             if (empty($submission->tribunal_timestart)) {
                 throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
             }
@@ -278,28 +241,10 @@ try {
             ]);
             break;
 
-        // Step 3: the examiner's reply to the answer just recorded.
-        case 'tribunal_next':
-            require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid, ['step3']);
-            if (empty($submission->tribunal_timestart)) {
-                throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
-            }
-            \core\session\manager::write_close();
-            core_php_time_limit::raise(300);
-
-            $conductor = new \mod_aiviva\api\tribunal_conductor($aiviva, $submission, $context);
-            echo json_encode([
-                'success'   => true,
-                'turn'      => $conductor->next_question(),
-                'remaining' => manager::tribunal_remaining($aiviva, $submission),
-            ]);
-            break;
-
         // Step 3: an examiner's turn as streamed audio (the source of an audio element).
         case 'tribunal_speech':
             require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid);
+            $submission = manager::require_own_submission($aiviva, $submissionid);
             $turn = required_param('turn', PARAM_INT);
             \core\session\manager::write_close();
 
@@ -314,100 +259,6 @@ try {
                 // No audio: the browser falls back to showing the text for a reading pause.
                 http_response_code(404);
             }
-            break;
-
-        // Step 3: closing statement. The final evaluation runs once the response has been sent.
-        case 'tribunal_closing':
-            require_capability('mod/aiviva:submit', $context);
-            $submission = aiviva_ajax_own_submission($aiviva, $submissionid);
-            if (in_array($submission->status, ['submitted', 'grading', 'graded'])) {
-                // Already closed (second tab, cron, repeated request): nothing left to do.
-                echo json_encode(['success' => true, 'turn' => null, 'status' => $submission->status]);
-                break;
-            }
-            if ($submission->status !== 'step3') {
-                throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
-            }
-            if (empty($submission->tribunal_timestart) || manager::tribunal_remaining($aiviva, $submission) > 15) {
-                throw new moodle_exception('error_tribunal_not_finished', 'mod_aiviva');
-            }
-            \core\session\manager::write_close();
-            core_php_time_limit::raise(300);
-
-            $turn = null;
-            try {
-                $turn = (new \mod_aiviva\api\tribunal_conductor($aiviva, $submission, $context))->closing_statement();
-            } catch (\Throwable $e) {
-                debugging('aiviva: closing statement failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
-            }
-
-            $task = new \mod_aiviva\task\evaluate_submission_task();
-            $task->set_custom_data(['submissionid' => $submission->id, 'cmid' => $cm->id]);
-            if (!manager::mark_submitted($submission, $course, $cm)) {
-                echo json_encode(['success' => true, 'turn' => $turn, 'status' => 'submitted']);
-                break;
-            }
-            aiviva_ajax_respond_then(
-                ['success' => true, 'turn' => $turn, 'status' => 'submitted'],
-                $task,
-                function () use ($submission, $aiviva, $course, $cm) {
-                    (new \mod_aiviva\api\evaluator())->evaluate($submission, $aiviva, $course, $cm);
-                }
-            );
-            break;
-
-        // Teacher: regenerate the AI analyses and/or the evaluation of a finished attempt.
-        case 'regen_pdf':
-        case 'regen_video':
-        case 'regen_evaluation':
-        case 'regen_all':
-            require_capability('mod/aiviva:grade', $context);
-            $submission = $DB->get_record(
-                'aiviva_submissions',
-                ['id' => $submissionid, 'aiviva' => $aiviva->id],
-                '*',
-                MUST_EXIST
-            );
-            if (!manager::can_review_user($cm, $context, (int)$submission->userid)) {
-                throw new required_capability_exception($context, 'moodle/site:accessallgroups', 'nopermissions', '');
-            }
-            if (!in_array($submission->status, ['submitted', 'grading', 'graded'])) {
-                throw new moodle_exception('error_regen_not_finished', 'mod_aiviva');
-            }
-            aiviva_regen_rate_check($USER->id, $submission->id, $action, $action === 'regen_all' ? 120 : 60);
-            \core\session\manager::write_close();
-            core_php_time_limit::raise(900);
-
-            $update = (object)['id' => $submission->id, 'timemodified' => time()];
-            $fs = get_file_storage();
-
-            if ($action === 'regen_pdf' || $action === 'regen_all') {
-                $pdffiles = $fs->get_area_files($context->id, 'mod_aiviva', 'submission_pdf', $submission->id, 'id', false);
-                if ($pdffiles) {
-                    $analyzer = new \mod_aiviva\api\pdf_analyzer();
-                    $update->pdf_analysis = $analyzer->analyse(reset($pdffiles), $aiviva, (int)$submission->userid);
-                } else if ($action === 'regen_pdf') {
-                    throw new moodle_exception('error_no_pdf', 'mod_aiviva');
-                }
-            }
-
-            if ($action === 'regen_video' || $action === 'regen_all') {
-                try {
-                    $result = (new \mod_aiviva\api\video_analyzer())->analyse($context, $submission, $aiviva);
-                    $update->video_transcript = $result['transcript'];
-                    $update->video_analysis   = $result['analysis'];
-                } catch (moodle_exception $e) {
-                    // With "regenerate all" a purged recording is not an error: the stored analysis is kept.
-                    if ($action === 'regen_video' || $e->errorcode !== 'error_no_recording') {
-                        throw $e;
-                    }
-                }
-            }
-
-            $DB->update_record('aiviva_submissions', $update);
-            $submission = $DB->get_record('aiviva_submissions', ['id' => $submission->id], '*', MUST_EXIST);
-            (new \mod_aiviva\api\evaluator())->evaluate($submission, $aiviva, $course, $cm);
-            echo json_encode(['success' => true]);
             break;
 
         default:
@@ -429,45 +280,6 @@ try {
 function aiviva_json_error(string $message): never {
     echo json_encode(['success' => false, 'error' => $message]);
     exit;
-}
-
-/**
- * Returns the current user's own attempt, enforcing every rule that applies
- * to a student action.
- *
- * @param stdClass $aiviva        Aiviva instance.
- * @param int      $submissionid  Submission id sent by the browser.
- * @param string[] $statuses      Statuses in which the action is allowed (empty = any).
- * @param bool     $requireopen   Whether the activity must be within its availability window.
- * @return stdClass Submission record.
- * @throws moodle_exception if the attempt is not the user's latest, lacks consent,
- *                          is in the wrong state, or the activity is closed.
- */
-function aiviva_ajax_own_submission(
-    stdClass $aiviva,
-    int $submissionid,
-    array $statuses = [],
-    bool $requireopen = false
-): stdClass {
-    global $USER;
-
-    $submission = manager::get_latest_submission($aiviva->id, $USER->id);
-    if (!$submission || (int)$submission->id !== $submissionid) {
-        throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
-    }
-    if (!$submission->gdpr_consent) {
-        throw new moodle_exception('gdpr_consent_required', 'mod_aiviva');
-    }
-    if ($statuses && !in_array($submission->status, $statuses, true)) {
-        throw new moodle_exception('invalidsubmissionstatus', 'mod_aiviva');
-    }
-    if ($requireopen) {
-        $availability = manager::availability(manager::get_effective_settings($aiviva, $USER->id));
-        if ($availability !== '') {
-            throw new moodle_exception('error_' . $availability, 'mod_aiviva');
-        }
-    }
-    return $submission;
 }
 
 /**
@@ -540,24 +352,4 @@ function aiviva_ajax_respond_then(array $payload, \core\task\adhoc_task $fallbac
         debugging('aiviva: inline processing failed, queued for cron: ' . $e->getMessage(), DEBUG_DEVELOPER);
         \core\task\manager::queue_adhoc_task($fallback, true);
     }
-}
-
-/**
- * Enforces a per-teacher, per-submission cooldown for expensive regen operations.
- *
- * @param int    $userid       Teacher's user id.
- * @param int    $submissionid Submission being regenerated.
- * @param string $operation    Operation name, for cache key namespacing.
- * @param int    $cooldownsecs Minimum seconds between calls.
- * @throws \moodle_exception if the cooldown has not yet expired.
- */
-function aiviva_regen_rate_check(int $userid, int $submissionid, string $operation, int $cooldownsecs = 60): void {
-    $cache = \cache::make('mod_aiviva', 'ratelimit');
-    $key   = $operation . '_' . $userid . '_' . $submissionid;
-    $last  = (int)($cache->get($key) ?: 0);
-    $now   = time();
-    if ($last > 0 && ($now - $last) < $cooldownsecs) {
-        throw new \moodle_exception('regen_cooldown', 'mod_aiviva');
-    }
-    $cache->set($key, $now);
 }

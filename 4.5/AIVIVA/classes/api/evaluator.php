@@ -54,8 +54,10 @@ class evaluator {
     /**
      * Evaluates a submission and updates the DB record with grade + feedback.
      *
-     * On a first evaluation the grade is released (or sent for teacher review,
-     * depending on the activity's workflow) and the relevant people are notified.
+     * On a first evaluation the grade is sent for teacher review, or released if
+     * the activity releases grades automatically, and the relevant people are
+     * notified. A grade is never released automatically when part of the work
+     * could not be read or the model raised an academic integrity concern.
      * On a re-evaluation nobody is notified, the review state is left as it is,
      * and a grade or feedback that a teacher has edited by hand is preserved:
      * only the AI's own proposal and breakdown are refreshed.
@@ -105,8 +107,13 @@ class evaluator {
         $feedback = $this->compose_feedback($result, prompt_helper::lang_code_for_user((int)$submission->userid));
 
         $isregrade   = $submission->status === 'graded';
-        $overridden  = $isregrade && !empty($submission->grader_userid);
+        $overridden  = $isregrade && manager::grade_was_edited($submission);
         $now         = time();
+
+        // A grade the model itself has doubts about, or that the activity holds, waits for a teacher.
+        $flags = $result['academic_integrity_flags'] ?? [];
+        $flags = array_filter(array_map('strval', is_array($flags) ? $flags : [$flags]), static fn($flag) => trim($flag) !== '');
+        $hold  = $aiviva->grading_workflow || $incomplete || $flags;
 
         $update = (object)[
             'id'                => $submission->id,
@@ -122,8 +129,8 @@ class evaluator {
             $update->timegraded     = $now;
         }
         if (!$isregrade) {
-            $update->workflow_state = ($aiviva->grading_workflow || $incomplete) ? 'inreview' : 'released';
-        } else if (!$aiviva->grading_workflow && !$incomplete && $submission->workflow_state !== 'released') {
+            $update->workflow_state = $hold ? 'inreview' : 'released';
+        } else if (!$hold && $submission->workflow_state !== 'released') {
             $update->workflow_state = 'released';
         }
         $DB->update_record('aiviva_submissions', $update);
@@ -264,7 +271,8 @@ class evaluator {
                     [['role' => 'user', 'content' => $content]],
                     $model,
                     $system,
-                    ['text' => ['format' => ['type' => 'json_object']]]
+                    ['text' => ['format' => ['type' => 'json_object']]],
+                    (int)$submission->userid
                 );
                 $text = openai_client::responses_output_text($response);
                 if ($text !== '') {
@@ -272,14 +280,20 @@ class evaluator {
                     return $text;
                 }
             } catch (\Throwable $e) {
+                if (openai_client::is_refusal($e)) {
+                    throw $e;
+                }
                 debugging('aiviva evaluator: request with PDF failed, retrying without it. ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
         }
 
+        // The same evidence has just passed the content filter if the request above was made.
         $response = $this->client->chat_completion(
             [['role' => 'system', 'content' => $system], ['role' => 'user', 'content' => $evidence]],
             $model,
-            ['response_format' => ['type' => 'json_object']]
+            ['response_format' => ['type' => 'json_object']],
+            (int)$submission->userid,
+            !$pdffiles
         );
         return $response['choices'][0]['message']['content'] ?? '';
     }

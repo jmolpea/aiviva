@@ -206,5 +206,24 @@ function xmldb_aiviva_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026100300, 'aiviva');
     }
 
+    if ($oldversion < 2026100700) {
+        // New activities hold the AI grade for teacher review unless the teacher decides otherwise.
+        // Only the column default changes: existing activities keep the setting they were saved with.
+        $table = new xmldb_table('aiviva');
+        $field = new xmldb_field(
+            'grading_workflow',
+            XMLDB_TYPE_INTEGER,
+            '2',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '1',
+            'tribunal_member_3_avatar_custom'
+        );
+        $dbman->change_field_default($table, $field);
+
+        upgrade_mod_savepoint(true, 2026100700, 'aiviva');
+    }
+
     return true;
 }

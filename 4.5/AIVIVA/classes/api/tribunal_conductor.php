@@ -348,7 +348,7 @@ PROMPT;
     public static function speaker_name(\stdClass $aiviva, string $speaker): string {
         if (preg_match('/^tribunal_([1-3])$/', $speaker, $matches)) {
             $name = trim((string)($aiviva->{"tribunal_member_{$matches[1]}_name"} ?? ''));
-            return $name !== '' ? $name : 'Examiner ' . $matches[1];
+            return $name !== '' ? $name : get_string('examiner_default', 'mod_aiviva', (int)$matches[1]);
         }
         return 'Candidate';
     }
@@ -505,7 +505,7 @@ PROMPT;
         );
         $text = trim($response['choices'][0]['message']['content'] ?? '');
         if ($text === '') {
-            throw new \moodle_exception('openai_api_error', 'mod_aiviva', '', 'empty response');
+            throw new \moodle_exception('openai_api_error', 'mod_aiviva', '', null, 'empty response');
         }
         return $text;
     }

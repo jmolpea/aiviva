@@ -38,7 +38,8 @@ use mod_aiviva\local\manager;
  * Privacy provider for mod_aiviva.
  *
  * Data stored locally: attempts (analyses, transcripts, grades, consent), the
- * tribunal conversation, uploaded and recorded files, and per-user overrides.
+ * tribunal conversation, uploaded and recorded files, per-user overrides, and
+ * which teacher edited the grade of an attempt.
  *
  * Data sent to an external service (OpenAI): the submitted document, the
  * recorded audio, screenshots of the presentation, and the conversation.
@@ -137,6 +138,15 @@ class provider implements
             $contextlist->add_from_sql($sql, $params);
         }
 
+        // Activities in which the user, as a teacher, edited the grade of somebody's attempt.
+        $sql = "SELECT ctx.id
+                  FROM {context} ctx
+                  JOIN {course_modules} cm ON cm.id = ctx.instanceid AND ctx.contextlevel = :ctxlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {aiviva_submissions} t ON t.aiviva = cm.instance
+                 WHERE t.grader_userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+
         return $contextlist;
     }
 
@@ -158,6 +168,14 @@ class provider implements
                      WHERE cm.id = :cmid AND t.userid IS NOT NULL";
             $userlist->add_from_sql('userid', $sql, ['cmid' => $context->instanceid, 'modname' => 'aiviva']);
         }
+
+        // Teachers who edited a grade. A grader of 0 is a teacher whose data has already been deleted.
+        $sql = "SELECT t.grader_userid
+                  FROM {aiviva_submissions} t
+                  JOIN {course_modules} cm ON cm.instance = t.aiviva
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                 WHERE cm.id = :cmid AND t.grader_userid > 0";
+        $userlist->add_from_sql('grader_userid', $sql, ['cmid' => $context->instanceid, 'modname' => 'aiviva']);
     }
 
     /**
@@ -242,6 +260,28 @@ class provider implements
                     writer::with_context($context)->export_area_files($subcontext, 'mod_aiviva', $filearea, $submission->id);
                 }
             }
+
+            // What the user did as a teacher: the grade and feedback they set on other people's
+            // attempts. The attempts are numbered here, so that nothing identifies the student.
+            $graded = $DB->get_records(
+                'aiviva_submissions',
+                ['aiviva' => $cm->instance, 'grader_userid' => $userid],
+                'timegraded ASC, id ASC'
+            );
+            $number = 0;
+            foreach ($graded as $submission) {
+                $number++;
+                writer::with_context($context)->export_data(
+                    [get_string('privacy:gradedattempts', 'mod_aiviva'), $number],
+                    (object)[
+                        'final_grade'    => $submission->final_grade,
+                        'final_feedback' => $submission->final_feedback,
+                        'timegraded'     => $submission->timegraded
+                            ? transform::datetime($submission->timegraded)
+                            : null,
+                    ]
+                );
+            }
         }
     }
 
@@ -289,7 +329,8 @@ class provider implements
     }
 
     /**
-     * Deletes the attempts and overrides of the given users in one context.
+     * Deletes the attempts and overrides of the given users in one context, and
+     * removes their name from the grades they edited as teachers.
      *
      * @param \context $context The context.
      * @param int[]    $userids The users.
@@ -313,5 +354,9 @@ class provider implements
             manager::delete_submission($submission, $context);
         }
         $DB->delete_records_select('aiviva_overrides', "aiviva = :aiviva AND userid {$insql}", $params);
+
+        // Grades these users edited as teachers belong to the students and stay, but no longer
+        // name them: 0 keeps the grade marked as edited by a teacher, without saying which one.
+        $DB->set_field_select('aiviva_submissions', 'grader_userid', 0, "aiviva = :aiviva AND grader_userid {$insql}", $params);
     }
 }
